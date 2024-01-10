@@ -3,16 +3,27 @@
 
 <h1>Publications - Link Lab</h1>
 
-<div class="row">
+<div class="row" id="publication">
     <div class="col-md-8">
         <h2 style="margin-bottom:20px;">Featured Publications</h2>
         <script src="{{bibbase_url}}&authorFirst=1&filter=title:Cyber-Physical Systems"> 
-        </script> 
-    </div>
-
-    <div class="col-md-4">
+        </script>
+    </div> 
+    
+    <div class="secondary_column">
         {% include "publications/column.html" %}
     </div>
+
+    <script>
+        const column = document.getElementById("publication");
+        var target = column.childNodes[2];
+        if (target.tagName == "I") {
+            target.className += "col-md-4";
+        } else {
+            var secondary_column = document.getElementsByClassName("secondary_column");
+            secondary_column[0].className = "col-md-4";
+        } 
+    </script>
 </div>
 
 
