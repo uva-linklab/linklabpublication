@@ -1,1 +1,0 @@
-alert("Hello, welcome to LinkLab");
