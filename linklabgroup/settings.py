@@ -134,5 +134,7 @@ LOGIN_REDIRECT_URL = "login"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 BIBBASE_URL = "https://bibbase.org/show?bib=https%3A%2F%2Fbibbase.org%2Fnetwork%2Ffiles%2F7MXuKSYyPscrWrLxG&noBootstrap=1&jsonp=1"
+
+## bib.file created with different filter range
 # testing_url = <script src="https://bibbase.org/show?bib=https%3A%2F%2Fbibbase.org%2Fnetwork%2Ffiles%2FFbQNxd52iJrtpWm4o&noBootstrap=1&jsonp=1&authorFirst=1">
 # ver1_url = <script src="https://bibbase.org/show?bib=https%3A%2F%2Fbibbase.org%2Fnetwork%2Ffiles%2FsHvHiyDRQduEWbcfu&noBootstrap=1&jsonp=1">
