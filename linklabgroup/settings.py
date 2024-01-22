@@ -16,7 +16,7 @@ SECRET_KEY = 'django-insecure-((focpj9tg6=s-@-l6k-z^9u(pl^s4mp6@o03vls%iejez*9w1
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -83,6 +83,25 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+import pymysql
+
+pymysql.install_as_MySQLdb()
+
+# [START db_setup]
+if os.getenv('GAE_APPLICATION', None):
+    # Running on production App Engine, so connect to Google Cloud SQL using
+    # the unix socket at /cloudsql/<your-cloudsql-connection string>
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "HOST": "/cloudsql/linklabpublication:us-central1:linklabpublication",
+            "NAME": "milestone",
+            "USER": "fengyi",
+            "PASSWORD": "linklab1234qwer1234qwer",
+        }
+    }
+
 
 
 # Password validation
