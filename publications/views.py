@@ -11,14 +11,6 @@ def index(request):
     template = loader.get_template("publications/index.html")
     return HttpResponse(template.render(context, request))
 
-def complete(request):
-    context = {
-        "bibbase_url": settings.BIBBASE_URL,
-    }
-
-    template = loader.get_template("publications/complete.html")
-    return HttpResponse(template.render(context, request))
-
 def filter_year(request, id):
     context = {
         "bibbase_url": settings.BIBBASE_URL,
@@ -35,4 +27,13 @@ def filter_author(request, str):
     }
 
     template = loader.get_template("publications/filter_author.html")
+    return HttpResponse(template.render(context, request))
+
+def filter_theme(request, str):
+    context = {
+        "bibbase_url": settings.BIBBASE_URL,
+        "filter_theme":str,
+    }
+
+    template = loader.get_template("publications/filter_theme.html")
     return HttpResponse(template.render(context, request))
