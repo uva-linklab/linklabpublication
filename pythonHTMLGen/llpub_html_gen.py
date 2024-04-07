@@ -3,10 +3,11 @@ from pathlib import Path
 from tqdm import tqdm
 import os
 import requests
+#------------------------------------------------------------------
 #
 bibbase_url = "https://bibbase.org/show?bib=https://bibbase.org/f/fFERMKNwKyHLsDPJ3/Link_Lab_Publications.bib"
 # 
-filter_years = ["2023", "2022", "2021", "2020", "2019", "2018", "2017", "2016", "2015"]  
+filter_years = ["2024","2023", "2022", "2021", "2020", "2019", "2018", "2017"]  
 # 
 filter_authors = {
    "Negin Alemazkoor": "Alemazkoor, N.",
@@ -52,7 +53,7 @@ filter_authors = {
    "Yixin Sun": "Sun, Y.",
    "Ye Sun": "Sun, Y.",
 }
-#
+#------------------------------------------------------------------
 filter_theme = {}
 
 def load_base_html():
@@ -77,11 +78,12 @@ def create_and_init_html_file(filter):
     return filter_html_file, filter_bibbase
 
 
-# Part 1/3: generate index.html !!
+"""Part 1/3: generate index.html !! -> USE 2024 PUBLICATIONS
+"""
 index_html_file = open("index.html", "w")
 index_bibbase = f'<h2 style="margin-bottom:20px;">2023 Publications</h2> <div></div>'
 index_bibbase = BeautifulSoup(index_bibbase, features="lxml")
-bibbase_body = get_bibbase_html(bibbase_url, "year:2023")
+bibbase_body = get_bibbase_html(bibbase_url, "year:2024")
 tag = index_bibbase.div
 tag.append(bibbase_body)
 
@@ -101,7 +103,8 @@ index_html_file.close()
 # if not os.path.exists(filter_year_path):
 #     os.makedirs(filter_year_path)
 
-# Part 2/3: create year.html !!
+""" Part 2/3: create year.html !!
+"""
 print("generating year_htmls_file")
 for year in tqdm(filter_years):
     html, column_html = load_base_html()
@@ -118,7 +121,8 @@ for year in tqdm(filter_years):
     year_html_file.write(str(html.prettify()))
     year_html_file.close()
 
-# Part 3/3: create faculty.html !!
+"""Part 3/3: create faculty.html !!
+"""
 print("generating faculty_htmls_file")
 for author, value in tqdm(filter_authors.items()):
     html, column_html = load_base_html()
