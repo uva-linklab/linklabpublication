@@ -1,4 +1,4 @@
-# linklabpublications:main
+# linklabpublications
 This project is used to provide a publication site that shows the publication work from all the faculty members in Link Lab community.
 
 ## Overview
@@ -6,23 +6,30 @@ This project is used to provide a publication site that shows the publication wo
 We use [BibBase](https://bibbase.org/) to create and manage our publications page. It is an online platform and you will have more information from their [documantation](https://bibbase.org/documentation) to learn how Link Lab Faculty Members' publications page are maintained and produced with the help of BibBase.
 
 ## Project Directory
-### OpenAlex_bibtex_mod.py
+1. OpenAlex_bibtex_mod.py
+
 TBD..
-### Link_Lab_Publications.bib
-TBD...
-### platform
-TBD..
-### pythonHTMLGen
+
+2. Link_Lab_Publications.bib
+
 TBD...
 
-## How to use 
-### Access(maintain) the bib.file on BibBase file manager
+3. platform
+
+TBD..
+
+4. pythonHTMLGen
+
+TBD...
+
+## How to use BibBase
+#### Access the bib.file on BibBase file manager
 The first step is to register an account on BibBase and then you are good to upload the bib.file of collected Link Lab publications
 
-### Get the BibBase_URL
+#### Get the BibBase_URL
 TBD..
 
-### Run the Project
+## Run the Project
 #### Prerequisites
 Versioning
 - python==3.8.5
@@ -49,5 +56,7 @@ python3 llpub_html_gen.py
 
 3. If working successful, in folder ```pythonHTMLGen``` you will see the files structured like the below.
 
-## How to Maintain
-TBD...
+## How to Maintain the Project
+
+
+
