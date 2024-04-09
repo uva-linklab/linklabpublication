@@ -77,7 +77,7 @@ python3 llpub_html_gen.py
 <img width="655" alt="upload_755abcd180e275a65ac4826a5881bf532" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/4169b7f1-cb89-4506-9f45-71fec3d5ccef"> <br>
 
 3. If working successful, in folder ```pythonHTMLGen``` you will see the files structured like the below.
-
+[TBD...]
 
 
 4. Finally, we can browse the publication site through node.js (express.js). Run the following command in the directory path
