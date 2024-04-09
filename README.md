@@ -1,4 +1,4 @@
-![ezgif-7-cbe4e77786](https://github.com/AustinFengYi/linklabpublication/assets/22648364/694a110e-9f84-4783-b6ab-2c1d0a8d025c)# linklabpublications
+# linklabpublications
 This project is used to provide a publication site that shows the publication work from all the faculty members in Link Lab community.
 
 We introduce the LinkLabPublications HTMLs Generator, which is the hightlight of the project. It is a Python-based script that could generate all the static HTMLs files that the Link Lab Publications Site needs. The benefit of this way of implementation is because it is eaiser to get the site to the [UVA Link Lab Official Website](https://engineering.virginia.edu/labs-groups/link-lab). 
