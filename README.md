@@ -83,7 +83,7 @@ python3 llpub_html_gen.py
 :bulb: Note: I will restructure the publication file path like as below <br>
 <img width="200" alt="upload_755abcd180e275a65ac4826a5881bf532" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/5ced3903-9261-490d-9fb4-b7ee7b24907d"> <br>
 
-4. Finally, we can browse the publication site through node.js (express.js). Run the following command in the directory path
+4. Finally, we can go through these static HTML files and browse the publication site through node.js (express.js). Run the following command in the directory path
 
 ![ezgif-1-724e9e9fd0](https://github.com/AustinFengYi/linklabpublication/assets/22648364/99c73bfd-abd6-4243-a7d4-a574918db71c)
 
