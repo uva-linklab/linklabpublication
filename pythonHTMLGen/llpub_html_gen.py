@@ -77,11 +77,15 @@ def create_and_init_html_file(filter):
 
     return filter_html_file, filter_bibbase
 
-
+#------------------------------------------------------------------
+#                                                                 #
+#         The Link Lab Publications HTML Generator Starts         #
+#                                                                 #
+#------------------------------------------------------------------
 """Part 1/3: generate index.html !! -> USE 2024 PUBLICATIONS
 """
 index_html_file = open("index.html", "w")
-index_bibbase = f'<h2 style="margin-bottom:20px;">2023 Publications</h2> <div></div>'
+index_bibbase = f'<h2 style="margin-bottom:20px;">2024 Publications</h2> <div></div>'
 index_bibbase = BeautifulSoup(index_bibbase, features="lxml")
 bibbase_body = get_bibbase_html(bibbase_url, "year:2024")
 tag = index_bibbase.div
@@ -138,5 +142,3 @@ for author, value in tqdm(filter_authors.items()):
     html.find("div", class_= "secondary_column").insert(1,column_html)
     author_html_file.write(str(html.prettify()))
     author_html_file.close()
-
-# webbrowser.open_new_tab("1.html")
