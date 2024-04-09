@@ -1,4 +1,4 @@
-# linklabpublications
+![ezgif-7-cbe4e77786](https://github.com/AustinFengYi/linklabpublication/assets/22648364/694a110e-9f84-4783-b6ab-2c1d0a8d025c)# linklabpublications
 This project is used to provide a publication site that shows the publication work from all the faculty members in Link Lab community.
 
 We introduce the LinkLabPublications HTMLs Generator, which is the hightlight of the project. It is a Python-based script that could generate all the static HTMLs files that the Link Lab Publications Site needs. The benefit of this way of implementation is because it is eaiser to get the site to the [UVA Link Lab Official Website](https://engineering.virginia.edu/labs-groups/link-lab). 
@@ -76,9 +76,12 @@ python3 llpub_html_gen.py
 
 <img width="655" alt="upload_755abcd180e275a65ac4826a5881bf532" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/4169b7f1-cb89-4506-9f45-71fec3d5ccef"> <br>
 
-3. If working successful, in folder ```pythonHTMLGen``` you will see the files structured like the below.
-[TBD...]
+3. If working successful, in folder ```pythonHTMLGen``` you will see the files structured like the below. <be>
 
+![ezgif-7-cbe4e77786](https://github.com/AustinFengYi/linklabpublication/assets/22648364/f7730419-89a3-4547-97c9-75985ed5cef2)
+<br>
+:bulb: Note: I will restructure the publication file path like as below <br>
+<img width="200" alt="upload_755abcd180e275a65ac4826a5881bf532" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/5ced3903-9261-490d-9fb4-b7ee7b24907d"> <br>
 
 4. Finally, we can browse the publication site through node.js (express.js). Run the following command in the directory path
 
@@ -120,7 +123,7 @@ Here it puts the year range of the publications
 Here it is announced as the dictionary of the [key:pair] 
 ```author_name: author_searh_name_in_BibBase_filter_condition```
 
-Notice that the list of Link Lab faculty members is referenced from the released [ORICID spreadsheet](). 
+Notice that the list of Link Lab faculty members is referenced from the released [ORICID spreadsheet](https://github.com/AustinFengYi/linklabpublication/blob/main/pythonHTMLGen/ORICID%20spreadsheet.xlsx). 
 
 After having the lateast bib file content on Bibbase File Manager, we can run the command to generate the newest static html files for the Link Lab publication site.
 ```
