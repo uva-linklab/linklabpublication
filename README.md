@@ -6,19 +6,21 @@ We introduce the LinkLabPublications HTMLs Generator, which is the hightlight of
 ## Overview
 ### BibBase
 We use [BibBase](https://bibbase.org/) to help create and manage our publications page. It is an online platform and you will have more information from their [documantation](https://bibbase.org/documentation) to learn how Link Lab publications pages are maintained and produced with the help of BibBase.
+### General Notes
+If you are on a windows machine, you can copy and paste all the code snippets as they are. If you are on mac, you will need to do python3/pip 3 for the commands.
 
 ## Project Directory
-1. OpenAlex_bibtex_mod.py
+1. orcid_bibtex_mod.py
 
-This Python code is an improved version from the source code [LinkLabScholarlyMetrics](https://github.com/epurpur/LinkLabScholarlyMetrics). We implement this file to create and keep the latest version of the bib.file for the Link Lab publications.
+This Python code retrieves the works of every link lab author through the ORCID API. It gets the works as they appear on the authors page, so we rely on authors to update their own ORCID page with their publications. To see what this looks like on the web go to https://orcid.org/{ORCID}, where {ORCID} is the ORCID of a given author
 
 ```
-python3 OpenAlex_bibtex_mod.py
+python orcid_bibtex_mod.py
 ```
 
 2. Link_Lab_Publications.bib
 
-This bib file is generated after running the ```OpenAlex_bibtex_mod.py``` that is mentioned above. We will upload this file to amazing BibBase to create the publications
+This bib file is generated after running the ```orcid_bibtex_mod.py``` that is mentioned above. We will upload this file to the BibBase file manage to create the publication pages/
 
 
 
@@ -29,10 +31,10 @@ It is the highlight of the project. In the folder, you will run the Python file 
 
 
 ```
-pyhon3 llpub_html_gen
+pyhon llpub_html_gen.py
 ```
 
-4. platform (optional)
+4. platform (DEPRECATED)
 
 It is the previous version and is implemented by ```Django``` web framework. It is now not a good option for making Link Lab Publication Site as it is harder for the maintenance later.
 
@@ -52,7 +54,7 @@ The first step is to register an account on BibBase and then you are good to upl
 ## Quickstart
 #### Prerequisites
 Versioning
-- python==3.8.5
+- python==3.11.8
 
 #### Installation
 Setup
@@ -65,10 +67,11 @@ https://github.com/AustinFengYi/linklabpublication.git
 #### Experiment on your machine (local environment)
 This repository includes the folder named ```pythonHTMLGen``` , to start to experiment on your local machine with our repo.
 
-1. Go to the folder ```pythonHTMLGen```, then command the following
+1. In the folder ```linklabpublications```, command the following
 ```
-pip3 install requirements.txt
-python3 llpub_html_gen.py
+pip install requirements.txt
+cd pythonHTMLGen
+python llpub_html_gen.py
 ```
 <img width="620" alt="upload_755abcd180e275a65ac4826a5881bf53" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/63326b6f-1310-4776-89e0-9448064e97dc"> <br>
 
@@ -83,7 +86,7 @@ python3 llpub_html_gen.py
 :bulb: Note: I will restructure the publication file path like as below <br>
 <img width="200" alt="upload_755abcd180e275a65ac4826a5881bf532" src="https://github.com/AustinFengYi/linklabpublication/assets/22648364/5ced3903-9261-490d-9fb4-b7ee7b24907d"> <br>
 
-4. Finally, we can go through these static HTML files and browse the publication site through node.js (express.js). Run the following command in the directory path
+4. Finally, we can go through these static HTML files and browse the publication site through node.js (express.js). Run the following command in the directory path. NOTE: You will need node installed on your machine to run this next line of code.
 
 ![ezgif-1-724e9e9fd0](https://github.com/AustinFengYi/linklabpublication/assets/22648364/99c73bfd-abd6-4243-a7d4-a574918db71c)
 
@@ -94,14 +97,14 @@ node app.js
 
 ## How to Maintain the Project
 #### Step 1: Keep the latest version of bib file 
-[Directory: OpenAlex_bibtex_mod.py]
+[Directory: orcid_bibtex_mod.py]
 
-TBD...
+Run this as often as needed to generate an updated .bib file. 
 
 #### Step 2: Maintain the bib file of Link Lab Publications on [BibBase](https://bibbase.org/)'s file manager
 [Bibbase File Manager](https://bibbase.org/network/editor/files)
 
-TBD...
+Upload the newly created bib file to the file manager and click render. Copy the URL and put into the bibbase_url variable in llpub_html_gen.py.
 
 #### Step 3: 
 [Directory/PythonGen: llpub_html_gen.py]
@@ -127,6 +130,7 @@ Notice that the list of Link Lab faculty members is referenced from the released
 
 After having the lateast bib file content on Bibbase File Manager, we can run the command to generate the newest static html files for the Link Lab publication site.
 ```
-python3 llpub_html_gen.py
+cd pythonHTMLGen
+python llpub_html_gen.py
 ```
 
