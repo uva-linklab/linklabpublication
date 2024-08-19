@@ -48,6 +48,7 @@ author_ids = {
         'N. Rich Nguyen': '0000-0002-4910-8069',
         'Somayeh Asadi': '0000-0001-8868-5603',
         'Kun Qian': '0000-0003-4971-8075',
+        'Rohan Chandra': '0000-0003-4843-6375'
 }
 
 ORCID_RECORD_API = "https://pub.orcid.org/v3.0"
@@ -85,8 +86,8 @@ for name, orcid in author_ids.items():
     headers={'Accept': 'application/json'})
     response.raise_for_status()
     result = response.json()
-    with open('data.json', 'a') as f:
-            json.dump(result, f)
+    # with open('data.json', 'a') as f:
+    #         json.dump(result, f)
     works = result["activities-summary"]["works"]
 
     for group in works['group']:
