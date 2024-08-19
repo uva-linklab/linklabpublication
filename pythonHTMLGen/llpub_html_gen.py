@@ -64,16 +64,15 @@ author_ids = {
 
 # This function creates the column of year and authors on the html page
 def load_base_html():
-    base_html = open("./base.html", "r").read()
+    base_html = open("./base.html", "r", encoding='utf-8'
+    ).read()
     html = BeautifulSoup(base_html, "html.parser")
-    column_html = BeautifulSoup(open("./column.html", "r").read(),'html.parser')
+    column_html = BeautifulSoup(open("./column.html", "r",encoding='utf-8').read(),'html.parser')
     return html, column_html
 
 # This function formats the publications in html. It extracts the pre-formatted html from the bibbase URL- Bibbase formats the publications for us when we upload a bib file to the file manager
 def get_bibbase_html(bibbase_url, filter_cond): 
     response = requests.get(f'{bibbase_url}&noBootstrap=1&authorFirst=1&filter={filter_cond}')
-    # with open('body.html', 'r', encoding='utf-8') as file:
-    #     html_content = file.read()
     r_html = response.text # get the response text. in this case it is HTML
     soup = BeautifulSoup(r_html, "html.parser") # parse the HTML
     body = soup.find('body')
@@ -81,7 +80,7 @@ def get_bibbase_html(bibbase_url, filter_cond):
 
 # Creates the bare html file for years/authors
 def create_and_init_html_file(filter):
-    filter_html_file = open(f"./{filter}.html", "w")
+    filter_html_file = open(f"./{filter}.html", "w",encoding='utf-8')
     filter_bibbase = f'<h2 style="margin-bottom:20px;">{filter} Publications</h2> <div> </div>'
     filter_bibbase = BeautifulSoup(filter_bibbase, features="lxml")
 
@@ -94,7 +93,7 @@ def create_and_init_html_file(filter):
 #------------------------------------------------------------------
 """Part 1/3: generate index.html !! -> USES 2024 PUBLICATIONS
 """
-index_html_file = open("index.html", "w")
+index_html_file = open("index.html", "w",encoding='utf-8')
 index_bibbase = f'<h2 style="margin-bottom:20px;">2024 Publications</h2> <div></div>'
 index_bibbase = BeautifulSoup(index_bibbase, features="lxml")
 bibbase_body = get_bibbase_html(bibbase_url, "year:2024")
