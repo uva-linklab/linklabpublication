@@ -6,7 +6,7 @@ import requests
 #------------------------------------------------------------------
 
 # This is the URL that the publication data is being fetched from. It is uploaded to bibbase after the bib file is update/generated
-bibbase_url = "https://bibbase.org/show?bib=https://bibbase.org/f/Nu7vemBQmbYhdC97i/test.bib"
+bibbase_url = "https://bibbase.org/show?bib=https://bibbase.org/f/p8JSWauQqBJgfaJRW/Link_Lab_Publications.bib"
 
 filter_years = ["2024","2023", "2022", "2021", "2020", "2019", "2018", "2017"]  
 
@@ -59,6 +59,7 @@ author_ids = {
         'N. Rich Nguyen': '0000-0002-4910-8069',
         'Somayeh Asadi': '0000-0001-8868-5603',
         'Kun Qian': '0000-0003-4971-8075',
+        'Rohan Chandra':'0000-0003-4843-6375',
 }
 #------------------------------------------------------------------
 
