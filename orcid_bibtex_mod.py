@@ -87,7 +87,6 @@ for name, orcid in author_ids.items():
     headers={'Accept': 'application/json'})
     response.raise_for_status()
     result = response.json()
-
     works = result["activities-summary"]["works"]
 
     for group in works['group']:
