@@ -6,7 +6,7 @@ import requests
 #------------------------------------------------------------------
 
 # This is the URL that the publication data is being fetched from. It is uploaded to bibbase after the bib file is update/generated
-bibbase_url = "https://bibbase.org/show?bib=https://bibbase.org/f/p8JSWauQqBJgfaJRW/Link_Lab_Publications.bib"
+bibbase_url = "https://bibbase.org/f/p8JSWauQqBJgfaJRW/Link_Lab_Publications.bib"
 
 filter_years = ["2024","2023", "2022", "2021", "2020", "2019", "2018", "2017"]  
 
