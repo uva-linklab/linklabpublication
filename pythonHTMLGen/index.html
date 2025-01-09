@@ -346,100 +346,106 @@
       }
 
       function makeDropdownSearchable(dropdownId) {
-        const selectElement = document.getElementById(dropdownId);
+  const selectElement = document.getElementById(dropdownId);
 
-        // Preserve original options
-        const originalOptions = Array.from(selectElement.options);
+  // Preserve original options
+  const originalOptions = Array.from(selectElement.options);
 
-        // Hide the native dropdown and replace it with a custom one
-        selectElement.style.display = "none";
+  // Hide the native dropdown and replace it with a custom one
+  selectElement.style.display = "none";
 
-        // Create a custom dropdown wrapper
-        const wrapper = document.createElement("div");
-        wrapper.style.position = "relative";
-        wrapper.style.width = "100%";
+  // Create a custom dropdown wrapper
+  const wrapper = document.createElement("div");
+  wrapper.style.position = "relative";
+  wrapper.style.width = "100%";
 
-        // Create a button to mimic the dropdown toggle
-        const toggleButton = document.createElement("button");
-        toggleButton.type = "button";
-        toggleButton.className = "form-select";
-        toggleButton.textContent =
-          selectElement.options[0]?.text || "Select an option";
+  // Create a button to mimic the dropdown toggle
+  const toggleButton = document.createElement("button");
+  toggleButton.type = "button";
+  toggleButton.className = "form-select";
+  toggleButton.style.whiteSpace = "nowrap"; // Prevent text wrapping
+  toggleButton.style.overflow = "hidden"; // Hide overflowed text
+  toggleButton.style.textOverflow = "ellipsis"; // Show ellipsis for overflowed text
+  toggleButton.textContent =
+    selectElement.options[0]?.text || "Select an option";
 
-        // Create the dropdown menu
-        const dropdownMenu = document.createElement("div");
-        dropdownMenu.style.display = "none";
-        dropdownMenu.style.position = "absolute";
-        dropdownMenu.style.width = "100%";
-        dropdownMenu.style.border = "1px solid #ced4da";
-        dropdownMenu.style.backgroundColor = "#fff";
-        dropdownMenu.style.zIndex = "1000";
-        dropdownMenu.style.maxHeight = "200px";
-        dropdownMenu.style.overflowY = "auto";
+  // Create the dropdown menu
+  const dropdownMenu = document.createElement("div");
+  dropdownMenu.style.display = "none";
+  dropdownMenu.style.position = "absolute";
+  dropdownMenu.style.width = "100%";
+  dropdownMenu.style.border = "1px solid #ced4da";
+  dropdownMenu.style.backgroundColor = "#fff";
+  dropdownMenu.style.zIndex = "1000";
+  dropdownMenu.style.maxHeight = "200px";
+  dropdownMenu.style.overflowY = "auto";
 
-        // Add a search input at the top of the dropdown menu
-        const searchInput = document.createElement("input");
-        searchInput.type = "text";
-        searchInput.className = "form-control";
-        searchInput.placeholder = "Type to search...";
-        searchInput.style.margin = "0";
-        searchInput.style.border = "none";
-        searchInput.style.borderBottom = "1px solid #ced4da";
-        dropdownMenu.appendChild(searchInput);
+  // Add a search input at the top of the dropdown menu
+  const searchInput = document.createElement("input");
+  searchInput.type = "text";
+  searchInput.className = "form-control";
+  searchInput.placeholder = "Type to search...";
+  searchInput.style.margin = "0";
+  searchInput.style.border = "none";
+  searchInput.style.borderBottom = "1px solid #ced4da";
+  dropdownMenu.appendChild(searchInput);
 
-        // Add options to the dropdown menu
-        const optionsContainer = document.createElement("div");
-        dropdownMenu.appendChild(optionsContainer);
+  // Add options to the dropdown menu
+  const optionsContainer = document.createElement("div");
+  dropdownMenu.appendChild(optionsContainer);
 
-        // Populate the options container
-        function populateOptions(query = "") {
-          optionsContainer.innerHTML = ""; // Clear previous options
-          originalOptions
-            .filter((option) =>
-              option.text.toLowerCase().includes(query.toLowerCase())
-            )
-            .forEach((option) => {
-              const dropdownOption = document.createElement("div");
-              dropdownOption.textContent = option.text;
-              dropdownOption.style.padding = "8px";
-              dropdownOption.style.cursor = "pointer";
-              dropdownOption.addEventListener("click", () => {
-                // Update the toggle button text and select the option
-                toggleButton.textContent = option.text;
-                selectElement.value = option.value;
-                dropdownMenu.style.display = "none"; // Close the dropdown
-                selectElement.dispatchEvent(new Event("change")); // Trigger change event
-              });
-              optionsContainer.appendChild(dropdownOption);
-            });
-        }
-
-        populateOptions(); // Initialize with all options
-
-        // Add search functionality
-        searchInput.addEventListener("input", () => {
-          populateOptions(searchInput.value);
+  // Populate the options container
+  function populateOptions(query = "") {
+    optionsContainer.innerHTML = ""; // Clear previous options
+    originalOptions
+      .filter((option) =>
+        option.text.toLowerCase().includes(query.toLowerCase())
+      )
+      .forEach((option) => {
+        const dropdownOption = document.createElement("div");
+        dropdownOption.textContent = option.text;
+        dropdownOption.style.padding = "8px";
+        dropdownOption.style.cursor = "pointer";
+        dropdownOption.style.whiteSpace = "normal"; // Allow full text during searches
+        dropdownOption.addEventListener("click", () => {
+          // Update the toggle button text and select the option
+          toggleButton.textContent = option.text;
+          toggleButton.title = option.text; // Add a tooltip with the full text
+          selectElement.value = option.value;
+          dropdownMenu.style.display = "none"; // Close the dropdown
+          selectElement.dispatchEvent(new Event("change")); // Trigger change event
         });
+        optionsContainer.appendChild(dropdownOption);
+      });
+  }
 
-        // Toggle dropdown menu visibility
-        toggleButton.addEventListener("click", () => {
-          dropdownMenu.style.display =
-            dropdownMenu.style.display === "none" ? "block" : "none";
-          searchInput.focus();
-        });
+  populateOptions(); // Initialize with all options
 
-        // Close the dropdown when clicking outside
-        document.addEventListener("click", (e) => {
-          if (!wrapper.contains(e.target)) {
-            dropdownMenu.style.display = "none";
-          }
-        });
+  // Add search functionality
+  searchInput.addEventListener("input", () => {
+    populateOptions(searchInput.value);
+  });
 
-        // Assemble the custom dropdown
-        wrapper.appendChild(toggleButton);
-        wrapper.appendChild(dropdownMenu);
-        selectElement.parentElement.appendChild(wrapper);
-      }
+  // Toggle dropdown menu visibility
+  toggleButton.addEventListener("click", () => {
+    dropdownMenu.style.display =
+      dropdownMenu.style.display === "none" ? "block" : "none";
+    searchInput.focus();
+  });
+
+  // Close the dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!wrapper.contains(e.target)) {
+      dropdownMenu.style.display = "none";
+    }
+  });
+
+  // Assemble the custom dropdown
+  wrapper.appendChild(toggleButton);
+  wrapper.appendChild(dropdownMenu);
+  selectElement.parentElement.appendChild(wrapper);
+}
+
       function populateFilters() {
         // Populate authors
         const authorSelect = document.getElementById("filterAuthor");
@@ -677,12 +683,47 @@
         }
       }
 
-      // Helper function to copy BibTeX content
       function copyBibTeX(button) {
         const bibtexContent = button.previousElementSibling.textContent;
         navigator.clipboard.writeText(bibtexContent).then(() => {
-          alert("BibTeX copied to clipboard!");
+          showMessage("BibTeX copied successfully!");
         });
+      }
+
+      // Function to display a non-intrusive message
+      function showMessage(message) {
+        // Create the message container if it doesn't exist
+        let messageContainer = document.getElementById("messageContainer");
+        if (!messageContainer) {
+          messageContainer = document.createElement("div");
+          messageContainer.id = "messageContainer";
+          messageContainer.style.position = "fixed";
+          messageContainer.style.bottom = "20px";
+          messageContainer.style.right = "20px";
+          messageContainer.style.backgroundColor = "#007bff";
+          messageContainer.style.color = "#fff";
+          messageContainer.style.padding = "10px 15px";
+          messageContainer.style.borderRadius = "5px";
+          messageContainer.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.2)";
+          messageContainer.style.fontSize = "14px";
+          messageContainer.style.zIndex = "1000";
+          messageContainer.style.transition = "opacity 0.5s ease";
+          document.body.appendChild(messageContainer);
+        }
+
+        // Set the message and show the container
+        messageContainer.textContent = message;
+        messageContainer.style.opacity = "1";
+
+        // Hide the message after 3 seconds
+        setTimeout(() => {
+          messageContainer.style.opacity = "0";
+          setTimeout(() => {
+            if (messageContainer) {
+              messageContainer.remove();
+            }
+          }, 500); // Delay for fade-out transition
+        }, 3000);
       }
 
       function toggleTheme() {
