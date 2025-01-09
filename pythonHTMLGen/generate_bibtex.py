@@ -159,24 +159,24 @@ for name, orcid in tqdm(author_ids.items(), desc="Processing Authors"):
 with open('Publications.bib', 'w', encoding='utf-8') as bibtex_file:
     bibtex_file.write(all_bibtex_publications)
 
-with open('Publications.json', 'w', encoding='utf-8') as json_file:
-    json.dump(all_publications_json, json_file, indent=4)
+# with open('Publications.json', 'w', encoding='utf-8') as json_file:
+#     json.dump(all_publications_json, json_file, indent=4)
 
-with open('SkippedPublications.log', 'w', encoding='utf-8') as log_file:
-    for skipped in skipped_publications:
-        log_file.write(json.dumps(skipped) + '\n')
+# with open('SkippedPublications.log', 'w', encoding='utf-8') as log_file:
+#     for skipped in skipped_publications:
+#         log_file.write(json.dumps(skipped) + '\n')
 
-# Save statistics
-with open('PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
-    stats = {
-        "publications_per_author": publications_per_author,
-        "publications_per_year": publications_per_year,
-        "publications_per_type": publications_per_type,
-        "total_publications": publication_count,
-        "total_skipped": len(skipped_publications),
-    }
-    json.dump(stats, stats_file, indent=4)
+# # Save statistics
+# with open('PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
+#     stats = {
+#         "publications_per_author": publications_per_author,
+#         "publications_per_year": publications_per_year,
+#         "publications_per_type": publications_per_type,
+#         "total_publications": publication_count,
+#         "total_skipped": len(skipped_publications),
+#     }
+#     json.dump(stats, stats_file, indent=4)
 
-print(f"Processed {publication_count} valid publications in total.")
-print(f"Skipped {len(skipped_publications)} invalid publications. Check 'SkippedPublications.log'.")
-print(f"Statistics saved in 'PublicationStatistics.json'.")
+# print(f"Processed {publication_count} valid publications in total.")
+# print(f"Skipped {len(skipped_publications)} invalid publications. Check 'SkippedPublications.log'.")
+# print(f"Statistics saved in 'PublicationStatistics.json'.")

@@ -526,68 +526,62 @@
       }
 
       function renderPublications() {
-        const search = document
-          .getElementById("search")
-          .value.toLowerCase()
-          .trim();
-        const authorOrcid = document.getElementById("filterAuthor").value; // Selected ORCID
-        const year = document.getElementById("filterYear").value;
-        const journal = document.getElementById("filterJournal").value;
+  const search = document.getElementById("search").value.toLowerCase().trim();
+  const authorOrcid = document.getElementById("filterAuthor").value; // Selected ORCID
+  const year = document.getElementById("filterYear").value;
+  const journal = document.getElementById("filterJournal").value;
 
-        // Split the search query into individual words
-        const searchWords = search.split(/\s+/).filter((word) => word); // Remove empty strings
+  // Split the search query into individual words
+  const searchWords = search.split(/\s+/).filter((word) => word); // Remove empty strings
 
-        // Filter publications based on search and selected filters
-        let filteredPublications = publications.filter((pub) => {
-          // Multi-word prefix search across BibTeX entry
-          const matchesSearch =
-            !searchWords.length ||
-            searchWords.every(
-              (searchWord) =>
-                pub.bibtex
-                  .toLowerCase()
-                  .split(/\s+/) // Split BibTeX into words
-                  .some((bibWord) => bibWord.startsWith(searchWord)) // Prefix match for each search word
-            );
+  // Filter publications based on search and selected filters
+  let filteredPublications = publications.filter((pub) => {
+    // Multi-word prefix search across BibTeX entry
+    const matchesSearch =
+      !searchWords.length ||
+      searchWords.every((searchWord) =>
+        pub.bibtex
+          .toLowerCase()
+          .split(/\s+/) // Split BibTeX into words
+          .some((bibWord) => bibWord.startsWith(searchWord)) // Prefix match for each search word
+      );
 
-          const matchesAuthor = !authorOrcid || pub.orcid === authorOrcid;
-          const matchesYear = !year || pub.year == year;
-          const matchesJournal = !journal || pub.journal === journal;
+    const matchesAuthor = !authorOrcid || pub.orcid === authorOrcid;
+    const matchesYear = !year || pub.year == year;
+    const matchesJournal = !journal || pub.journal === journal;
 
-          return (
-            matchesSearch && matchesAuthor && matchesYear && matchesJournal
-          );
-        });
+    return matchesSearch && matchesAuthor && matchesYear && matchesJournal;
+  });
 
-        // Remove duplicates based on normalized title when no search or filters are applied
-        if (!search && !authorOrcid && !year && !journal) {
-          const seenTitles = new Set();
-          filteredPublications = filteredPublications.filter((pub) => {
-            const normalizedTitle = pub.title.toLowerCase().trim();
-            if (seenTitles.has(normalizedTitle)) {
-              return false;
-            }
-            seenTitles.add(normalizedTitle);
-            return true;
-          });
-        }
+  // Deduplicate results based on (title + DOI/URL) and (author + year)
+  const seenPublications = new Set();
+  filteredPublications = filteredPublications.filter((pub) => {
+    const normalizedTitle = pub.title.toLowerCase().trim();
+    const identifier = `${normalizedTitle}|${pub.doi || pub.url || ""}|${pub.authors.join(",").toLowerCase()}|${pub.year}`;
 
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginated = filteredPublications.slice(
-          startIndex,
-          startIndex + itemsPerPage
-        );
+    if (seenPublications.has(identifier)) {
+      return false; // Skip duplicates
+    }
+    seenPublications.add(identifier);
+    return true; // Keep unique entries
+  });
 
-        const publicationList = document.getElementById("publicationList");
-        publicationList.innerHTML = paginated
-          .map(
-            (pub) => `
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginated = filteredPublications.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  const publicationList = document.getElementById("publicationList");
+  publicationList.innerHTML = paginated
+    .map(
+      (pub) => `
       <div class="card">
         <div class="card-body">
           <h5 class="card-title">${pub.title}</h5>
           <p class="card-text">Authors: ${pub.authors.join(", ")}, ${
-              pub.year
-            }</p>
+        pub.year
+      }</p>
           ${
             pub.doi || pub.url
               ? `<a href="${
@@ -598,16 +592,18 @@
           <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
           <div class="bibtex" style="display: none;">
               <pre>${pub.bibtex}</pre>
+              <div id="bibtex-copied-message" class="mt-2" style="display: none;">Copied to clipboard!</div>
               <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
           </div>
         </div>
       </div>
     `
-          )
-          .join("");
+    )
+    .join("");
 
-        renderPagination(filteredPublications.length);
-      }
+  renderPagination(filteredPublications.length);
+}
+
 
       function renderPagination(totalItems) {
         const totalPages = Math.ceil(totalItems / itemsPerPage);
