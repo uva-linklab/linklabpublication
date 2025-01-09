@@ -200,17 +200,17 @@
         </div>
         <div class="col-md-3 mb-2">
           <select id="filterAuthor" class="form-select">
-            <option value="">Filter by author</option>
+            <option value="">Select Author</option>
           </select>
         </div>
         <div class="col-md-3 mb-2">
           <select id="filterYear" class="form-select">
-            <option value="">Filter by year</option>
+            <option value="">Select Year</option>
           </select>
         </div>
         <div class="col-md-3 mb-2">
           <select id="filterJournal" class="form-select">
-            <option value="">Filter by conference/journal</option>
+            <option value="">Select Journal</option>
           </select>
         </div>
       </div>
@@ -303,10 +303,13 @@
               ? fields.author.split(" and ").map((author) => author.trim())
               : [];
 
-            // Skip entries without authors
-            if (!authors.length) {
+            const doi = fields.doi || "";
+            const url = fields.url || "";
+
+            // Skip entries without authors or both DOI and URL
+            if (!authors.length || (!doi && !url)) {
               console.log(
-                `Skipping entry with ID ${id} due to missing authors.`
+                `Skipping entry with ID ${id} due to missing authors, DOI, or URL.`
               );
               return;
             }
@@ -321,8 +324,8 @@
               year: fields.year || "",
               month: fields.month || "",
               volume: fields.volume || "",
-              doi: fields.doi || "",
-              url: fields.url || "",
+              doi,
+              url,
               bibtex: entry.trim(), // Preserve original BibTeX entry
             };
 
@@ -342,7 +345,103 @@
         return publications;
       }
 
+      function makeDropdownSearchable(dropdownId) {
+        const selectElement = document.getElementById(dropdownId);
+
+        // Preserve original options
+        const originalOptions = Array.from(selectElement.options);
+
+        // Hide the native dropdown and replace it with a custom one
+        selectElement.style.display = "none";
+
+        // Create a custom dropdown wrapper
+        const wrapper = document.createElement("div");
+        wrapper.style.position = "relative";
+        wrapper.style.width = "100%";
+
+        // Create a button to mimic the dropdown toggle
+        const toggleButton = document.createElement("button");
+        toggleButton.type = "button";
+        toggleButton.className = "form-select";
+        toggleButton.textContent =
+          selectElement.options[0]?.text || "Select an option";
+
+        // Create the dropdown menu
+        const dropdownMenu = document.createElement("div");
+        dropdownMenu.style.display = "none";
+        dropdownMenu.style.position = "absolute";
+        dropdownMenu.style.width = "100%";
+        dropdownMenu.style.border = "1px solid #ced4da";
+        dropdownMenu.style.backgroundColor = "#fff";
+        dropdownMenu.style.zIndex = "1000";
+        dropdownMenu.style.maxHeight = "200px";
+        dropdownMenu.style.overflowY = "auto";
+
+        // Add a search input at the top of the dropdown menu
+        const searchInput = document.createElement("input");
+        searchInput.type = "text";
+        searchInput.className = "form-control";
+        searchInput.placeholder = "Type to search...";
+        searchInput.style.margin = "0";
+        searchInput.style.border = "none";
+        searchInput.style.borderBottom = "1px solid #ced4da";
+        dropdownMenu.appendChild(searchInput);
+
+        // Add options to the dropdown menu
+        const optionsContainer = document.createElement("div");
+        dropdownMenu.appendChild(optionsContainer);
+
+        // Populate the options container
+        function populateOptions(query = "") {
+          optionsContainer.innerHTML = ""; // Clear previous options
+          originalOptions
+            .filter((option) =>
+              option.text.toLowerCase().includes(query.toLowerCase())
+            )
+            .forEach((option) => {
+              const dropdownOption = document.createElement("div");
+              dropdownOption.textContent = option.text;
+              dropdownOption.style.padding = "8px";
+              dropdownOption.style.cursor = "pointer";
+              dropdownOption.addEventListener("click", () => {
+                // Update the toggle button text and select the option
+                toggleButton.textContent = option.text;
+                selectElement.value = option.value;
+                dropdownMenu.style.display = "none"; // Close the dropdown
+                selectElement.dispatchEvent(new Event("change")); // Trigger change event
+              });
+              optionsContainer.appendChild(dropdownOption);
+            });
+        }
+
+        populateOptions(); // Initialize with all options
+
+        // Add search functionality
+        searchInput.addEventListener("input", () => {
+          populateOptions(searchInput.value);
+        });
+
+        // Toggle dropdown menu visibility
+        toggleButton.addEventListener("click", () => {
+          dropdownMenu.style.display =
+            dropdownMenu.style.display === "none" ? "block" : "none";
+          searchInput.focus();
+        });
+
+        // Close the dropdown when clicking outside
+        document.addEventListener("click", (e) => {
+          if (!wrapper.contains(e.target)) {
+            dropdownMenu.style.display = "none";
+          }
+        });
+
+        // Assemble the custom dropdown
+        wrapper.appendChild(toggleButton);
+        wrapper.appendChild(dropdownMenu);
+        selectElement.parentElement.appendChild(wrapper);
+      }
       function populateFilters() {
+        // Populate authors
         const authorSelect = document.getElementById("filterAuthor");
         const sortedAuthors = Object.entries(authors).sort(([aName], [bName]) =>
           aName.localeCompare(bName)
@@ -354,6 +453,7 @@
           authorSelect.appendChild(option);
         });
 
+        // Populate years
         const yearSelect = document.getElementById("filterYear");
         const years = [...new Set(publications.map((pub) => pub.year))].sort(
           (a, b) => a - b
@@ -365,6 +465,7 @@
           yearSelect.appendChild(option);
         });
 
+        // Populate journals
         const journalSelect = document.getElementById("filterJournal");
         const journals = [...new Set(publications.map((pub) => pub.journal))]
           .filter((j) => j)
@@ -376,6 +477,10 @@
           journalSelect.appendChild(option);
         });
 
+        // Add search functionality to dropdowns
+        makeDropdownSearchable("filterAuthor");
+        makeDropdownSearchable("filterYear");
+        makeDropdownSearchable("filterJournal");
         populateItemsPerPage();
       }
 
@@ -423,10 +528,22 @@
         const year = document.getElementById("filterYear").value;
         const journal = document.getElementById("filterJournal").value;
 
-        // Normalize and deduplicate publications by title (case-insensitive) if no search or filters are applied
+        // Split the search query into individual words
+        const searchWords = search.split(/\s+/).filter((word) => word); // Remove empty strings
+
+        // Filter publications based on search and selected filters
         let filteredPublications = publications.filter((pub) => {
+          // Multi-word prefix search across BibTeX entry
           const matchesSearch =
-            !search || JSON.stringify(pub).toLowerCase().includes(search);
+            !searchWords.length ||
+            searchWords.every(
+              (searchWord) =>
+                pub.bibtex
+                  .toLowerCase()
+                  .split(/\s+/) // Split BibTeX into words
+                  .some((bibWord) => bibWord.startsWith(searchWord)) // Prefix match for each search word
+            );
+
           const matchesAuthor = !authorOrcid || pub.orcid === authorOrcid;
           const matchesYear = !year || pub.year == year;
           const matchesJournal = !journal || pub.journal === journal;
@@ -459,22 +576,26 @@
         publicationList.innerHTML = paginated
           .map(
             (pub) => `
-        <div class="card">
-            <div class="card-body">
-                <h5 class="card-title">${pub.title}</h5>
-                <p class="card-text">Authors: ${pub.authors.join(", ")}, ${
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">${pub.title}</h5>
+          <p class="card-text">Authors: ${pub.authors.join(", ")}, ${
               pub.year
             }</p>
-                <a href="${
-                  pub.url
-                }" target="_blank" class="btn btn-primary">Read More</a>
-                <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
-                <div class="bibtex" style="display: none;">
-                    <pre>${pub.bibtex}</pre>
-                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
-                </div>
-            </div>
+          ${
+            pub.doi || pub.url
+              ? `<a href="${
+                  pub.doi ? `https://doi.org/${pub.doi}` : pub.url
+                }" target="_blank" class="btn btn-primary">Read More</a>`
+              : ""
+          }
+          <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
+          <div class="bibtex" style="display: none;">
+              <pre>${pub.bibtex}</pre>
+              <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
+          </div>
         </div>
+      </div>
     `
           )
           .join("");
