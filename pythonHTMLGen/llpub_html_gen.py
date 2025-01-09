@@ -1,147 +1,156 @@
 from bs4 import BeautifulSoup
 from pathlib import Path
 from tqdm import tqdm
-import os
 import requests
+import json
+import re
+
 #------------------------------------------------------------------
 
-# This is the URL that the publication data is being fetched from. It is uploaded to bibbase after the bib file is update/generated
-bibbase_url = "https://bibbase.org/f/p8JSWauQqBJgfaJRW/Link_Lab_Publications.bib"
+# Load authors from a JSON file
+def load_authors():
+    # with open(Path(__file__).parent / "authors.json", "r", encoding="utf-8") as f:
+    with open(Path(__file__).parent.parent / "authors.json", "r", encoding="utf-8") as f:
+        return json.load(f)
 
-filter_years = ["2024","2023", "2022", "2021", "2020", "2019", "2018", "2017"]  
+# Parse BibBase file to extract publication years and pagination info
+def parse_bibbase(bibbase_url):
+    response = requests.get(bibbase_url)
+    if response.status_code != 200:
+        raise Exception("Failed to fetch BibBase file.")
 
+    bib_content = response.text
+    years = set()
+    publications = []
+    
+    # Parse BibTeX entries
+    entries = re.findall(r"@article\{.*?\}", bib_content, re.DOTALL)
+    for entry in entries:
+        # Extract publication metadata
+        year_match = re.search(r"year\s*=\s*\{(\d{4})\}", entry)
+        author_match = re.search(r"author\s*=\s*\{(.*?)\}", entry, re.DOTALL)
+        title_match = re.search(r"title\s*=\s*\{(.*?)\}", entry)
+        doi_match = re.search(r"doi\s*=\s*\{(.*?)\}", entry)
+        url_match = re.search(r"url\s*=\s*\{(.*?)\}", entry)
+        journal_match = re.search(r"journal\s*=\s*\{(.*?)\}", entry)
+        month_match = re.search(r"month\s*=\s*\{(.*?)\}", entry)
 
+        # Add year to set
+        if year_match:
+            years.add(year_match.group(1))
+        
+        # Create publication object
+        if year_match and title_match:
+            publication = {
+                "year": year_match.group(1),
+                "authors": [a.strip() for a in author_match.group(1).split(",")] if author_match else [],
+                "title": title_match.group(1),
+                "doi": doi_match.group(1) if doi_match else None,
+                "url": url_match.group(1) if url_match else None,
+                "journal": journal_match.group(1) if journal_match else "Unknown",
+                "month": month_match.group(1) if month_match else None,
+            }
+            publications.append(publication)
+    
+    return sorted(years, reverse=True), publications
 
-# List of Link Lab authors. Values are ORCID [0] and google scholar id [1]
-author_ids = {
-        'Negin Alemazkoor': '0000-0003-0221-3985',
-        'Homa Alemzadeh': '0000-0001-5279-842X',          
-        'Lawrence E. Band': '0000-0003-0461-0503',
-        'Laura E. Barnes': '0000-0001-8224-5164',
-        'Madhur Behl': '0000-0002-5921-0331',
-        'Nicola Bezzo': '0000-0001-6627-5048',                 
-        'Matthew Bolton': '0000-0002-3649-5637',
-        'Steven Bowers': '0000-0002-4243-8663',
-        'Maite Brandt-Pearce': '0000-0002-2566-8280',
-        'Benton H. Calhoun': '0000-0002-3770-5050',
-        'Brad Campbell': '0000-0002-4103-8107',
-        'Qing Chang': '0000-0003-3744-1371',
-        'T Donna Chen': '0000-0002-7026-3418',              
-        'Seokhyun Chung': '0000-0001-5176-4180',
-        'Haibo Dong': '0000-0001-7823-7014', 
-        'Afsaneh Doryab': '0000-0003-1575-385X',          
-        'Lu Feng': '0000-0002-4651-8441',       
-        'Tomonari Furukawa': '0000-0003-2811-4221',
-        'Gregory Gerling': '0000-0003-3137-3822',
-        'Jonathan L. Goodall': '0000-0002-1112-4522',
-        'Devin K. Harris': '0000-0003-0086-1073',
-        'Seongkook Heo': '0000-0003-2004-4812',
-        'Arsalan Heydarian': '0000-0001-5972-6947',
-        'Tariq Iqbal': '0000-0003-0133-1234',
-        'Yen-Ling Kuo': '0000-0002-6433-6713',           
-        'Venkataraman Lakshmi': '0000-0001-7431-9004',
-        'James H. Lambert': '0000-0002-0697-8339',
-        'Zongli Lin': '0000-0003-1589-1443',
-        'Felix Xiaozhu Lin': '0000-0002-1615-6419',
-        'Zhen Liu': '0000-0001-8013-3804',                 
-        'Eric Loth': '0000-0003-4113-733X',
-        'Osman Ozbulut': '0000-0003-3836-3416',            
-        'Byungkyu Brian Park': '0000-0003-4597-6368',
-        'Daniel Quinn': '0000-0002-5835-5221',
-        'Sara Riggs': '0000-0002-0112-9469',
-        'Haiying Shen': '0000-0002-7548-6223',
-        'Cong Shen': '0000-0002-3148-4453',
-        'Brian Smith': '0000-0001-5102-6399',  
-        'Mircea R. Stan': '0000-0003-0577-9976',
-        'Yixin Sun': '0000-0001-6650-4373',
-        'Ye Sun': '0000-0003-1086-8017',
-        'Shangtong Zhang': '0000-0003-4255-1364',
-        'N. Rich Nguyen': '0000-0002-4910-8069',
-        'Somayeh Asadi': '0000-0001-8868-5603',
-        'Kun Qian': '0000-0003-4971-8075',
-        'Rohan Chandra':'0000-0003-4843-6375',
-}
+# Load authors and parse BibBase
+author_ids = load_authors()
+bibbase_url = "https://bibbase.org/show?bib=https://bibbase.org/f/d83cfSGB7mDcZZ8au/Small_Link_Lab_Publications.bib"
+filter_years, publications = parse_bibbase(bibbase_url)
+
 #------------------------------------------------------------------
 
-# This function creates the column of year and authors on the html page
+# Generate base HTML
 def load_base_html():
-    base_html = open("./base.html", "r", encoding='utf-8'
-    ).read()
+    base_html = open("./base.html", "r", encoding="utf-8").read()
     html = BeautifulSoup(base_html, "html.parser")
-    column_html = BeautifulSoup(open("./column.html", "r",encoding='utf-8').read(),'html.parser')
-    return html, column_html
+    return html
 
-# This function formats the publications in html. It extracts the pre-formatted html from the bibbase URL- Bibbase formats the publications for us when we upload a bib file to the file manager
-def get_bibbase_html(bibbase_url, filter_cond): 
-    response = requests.get(f'{bibbase_url}&noBootstrap=1&authorFirst=1&filter={filter_cond}')
-    r_html = response.text # get the response text. in this case it is HTML
-    soup = BeautifulSoup(r_html, "html.parser") # parse the HTML
-    body = soup.find('body')
-    return body
+# Create and initialize HTML file
+def create_and_init_html_file(file_name, title):
+    html = load_base_html()
+    main_content = html.find("main")
+    main_content.clear()
 
-# Creates the bare html file for years/authors
-def create_and_init_html_file(filter):
-    filter_html_file = open(f"./{filter}.html", "w",encoding='utf-8')
-    filter_bibbase = f'<h2 style="margin-bottom:20px;">{filter} Publications</h2> <div> </div>'
-    filter_bibbase = BeautifulSoup(filter_bibbase, features="lxml")
+    # Add title and publication container
+    main_content.append(html.new_tag("h2", string=title, attrs={"class": "page-title"}))
+    publications_div = html.new_tag("div", id="publications", attrs={"class": "publication-container"})
+    main_content.append(publications_div)
 
-    return filter_html_file, filter_bibbase
+    return html, publications_div
+
+# Generate HTML with publications and filters
+def generate_html(output_file, title, filtered_publications):
+    html, publications_div = create_and_init_html_file(output_file, title)
+
+    # Add publications
+    for pub in filtered_publications:
+        card = html.new_tag("div", attrs={"class": "publication-card", "data-year": pub["year"], "data-authors": ",".join(pub["authors"])})
+        card.append(html.new_tag("h3", string=pub["title"]))
+        card.append(html.new_tag("p", string=f"Authors: {', '.join(pub['authors'])}"))
+        card.append(html.new_tag("p", string=f"Year: {pub['year']}"))
+        card.append(html.new_tag("p", string=f"Journal: {pub['journal']}"))
+        if pub["doi"]:
+            doi_link = html.new_tag("a", href=f"https://doi.org/{pub['doi']}", string="DOI", target="_blank")
+            card.append(doi_link)
+        if pub["url"]:
+            url_link = html.new_tag("a", href=pub["url"], string="Read More", target="_blank")
+            card.append(url_link)
+        publications_div.append(card)
+
+    # Add filters dynamically
+    filter_container = html.new_tag("div", attrs={"class": "filters"})
+    
+    # Year filter
+    year_filter = html.new_tag("select", id="yearFilter", multiple=True)
+    for year in filter_years:
+        option = html.new_tag("option", value=year, string=year)
+        year_filter.append(option)
+    filter_container.append(year_filter)
+
+    # Author filter
+    author_filter = html.new_tag("select", id="authorFilter", multiple=True)
+    for author in author_ids.keys():
+        option = html.new_tag("option", value=author, string=author)
+        author_filter.append(option)
+    filter_container.append(author_filter)
+
+    # Type filter
+    type_filter = html.new_tag("select", id="typeFilter")
+    type_filter.append(html.new_tag("option", value="", string="All Types"))
+    type_filter.append(html.new_tag("option", value="article", string="Article"))
+    type_filter.append(html.new_tag("option", value="conference-paper", string="Conference Paper"))
+    filter_container.append(type_filter)
+
+    # Keyword filter
+    keyword_filter = html.new_tag("input", id="keywordFilter", type="text", placeholder="Search by keywords")
+    filter_container.append(keyword_filter)
+
+    # Apply button
+    apply_button = html.new_tag("button", id="applyFilters", string="Apply Filters")
+    filter_container.append(apply_button)
+
+    html.find("nav").append(filter_container)
+
+    # Save HTML
+    with open(output_file, "w", encoding="utf-8") as f:
+        f.write(str(html.prettify()))
 
 #------------------------------------------------------------------
-#                                                                 #
-#         The Link Lab Publications HTML Generator Starts         #
-#                                                                 #
-#------------------------------------------------------------------
-"""Part 1/3: generate index.html !! -> USES 2024 PUBLICATIONS
-"""
-index_html_file = open("index.html", "w",encoding='utf-8')
-index_bibbase = f'<h2 style="margin-bottom:20px;">2024 Publications</h2> <div></div>'
-index_bibbase = BeautifulSoup(index_bibbase, features="lxml")
-bibbase_body = get_bibbase_html(bibbase_url, "year:2024")
-tag = index_bibbase.div
-tag.append(bibbase_body)
 
-html, column_html = load_base_html()
+# Generate index.html
+print("Generating index.html")
+generate_html("index.html", "Link Lab Publications", publications)
 
-html.find("div", class_= "index").insert(1,index_bibbase)
-html.find("div", class_= "secondary_column").insert(1,column_html)
-index_html_file.write(str(html.prettify()))
-index_html_file.close()
-
-
-""" Part 2/3: create year.html !!
-"""
-print("generating year_htmls_file")
+# Generate year-based HTML files
+print("Generating year-based HTML files")
 for year in tqdm(filter_years):
-    html, column_html = load_base_html()
-    year_html_file, year_bibbase = create_and_init_html_file(year)
+    year_pubs = [pub for pub in publications if pub["year"] == year]
+    generate_html(f"{year}.html", f"Publications for {year}", year_pubs)
 
-    bibbase_body = get_bibbase_html(bibbase_url, f"year:{year}")
-    if bibbase_body is None:
-        bibbase_body = '<span></span>'
-    tag = year_bibbase.div
-    tag.append(bibbase_body)
-
-    html.find("div", class_= "index").insert(1,year_bibbase)
-    html.find("div", class_= "secondary_column").insert(1,column_html)
-    year_html_file.write(str(html.prettify()))
-    year_html_file.close()
-
-"""Part 3/3: create faculty.html !!
-"""
-print("generating faculty_htmls_file")
-for name, (orcid) in tqdm(author_ids.items()):
-
-    html, column_html = load_base_html()
-    author_html_file, author_bibbase = create_and_init_html_file(name)
-    bibbase_body = get_bibbase_html(bibbase_url, f"id:{orcid}") 
-
-    if bibbase_body is None:
-        bibbase_body = '<span></span>'
-    tag = author_bibbase.div
-    tag.append(bibbase_body)
-
-    html.find("div", class_= "index").insert(1,author_bibbase)
-    html.find("div", class_= "secondary_column").insert(1,column_html)
-    author_html_file.write(str(html.prettify()))
-    author_html_file.close()
+# Generate author-based HTML files
+print("Generating author-based HTML files")
+for author in tqdm(author_ids.keys()):
+    author_pubs = [pub for pub in publications if author in pub["authors"]]
+    generate_html(f"{author}.html", f"Publications by {author}", author_pubs)

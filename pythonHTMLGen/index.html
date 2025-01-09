@@ -42,8 +42,10 @@
         border-radius: 10px;
         overflow: hidden;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        background-color: #fff; /* Default light mode */
-        color: #333; /* Default light mode text color */
+        background-color: #fff;
+        /* Default light mode */
+        color: #333;
+        /* Default light mode text color */
       }
 
       .card-body {
@@ -51,15 +53,21 @@
       }
 
       .dark-mode .card {
-        background-color: #444; /* Dark mode background for cards */
-        color: #ddd; /* Dark mode text color for cards */
-        border-color: #555; /* Dark mode border color */
+        background-color: #444;
+        /* Dark mode background for cards */
+        color: #ddd;
+        /* Dark mode text color for cards */
+        border-color: #555;
+        /* Dark mode border color */
       }
 
       .dark-mode .bibtex {
-        background-color: #333; /* Dark mode background for BibTeX section */
-        color: #ddd; /* Dark mode text color for BibTeX section */
-        border: 1px solid #555; /* Dark mode border color */
+        background-color: #333;
+        /* Dark mode background for BibTeX section */
+        color: #ddd;
+        /* Dark mode text color for BibTeX section */
+        border: 1px solid #555;
+        /* Dark mode border color */
       }
 
       /* Add a transition for smoother theme changes */
@@ -90,7 +98,7 @@
       }
 
       .pagination-container .items-per-page {
-        width: 120px;
+        width: 100px;
       }
 
       .form-select {
@@ -152,12 +160,15 @@
         color: #0056b3;
         text-decoration: none;
       }
+
       .pagination-wrapper {
         display: flex;
         flex-wrap: wrap;
-        gap: 5px; /* Add spacing between numbers */
+        gap: 5px;
+        /* Add spacing between numbers */
         justify-content: center;
       }
+
       .pagination {
         flex: 1 1 auto;
         margin: 0;
@@ -165,6 +176,7 @@
       }
     </style>
   </head>
+
   <body>
     <div class="navbar">
       <div class="container d-flex justify-content-between align-items-center">
@@ -229,16 +241,17 @@
       </div>
     </div>
 
-    <footer>
-      &copy; 2025 <a href="https://www.virginia.edu">University of Virginia</a>.
-      All rights reserved.
+    <footer style="margin-top: 20px">
+      &copy; <span id="currentYear"></span>
+      <a href="https://www.virginia.edu">University of Virginia</a>. All rights
+      reserved.
     </footer>
 
     <script>
       let authors = [];
       let publications = [];
       let currentPage = 1;
-      let itemsPerPage = 10;
+      let itemsPerPage = 20;
 
       // Load authors and publications dynamically
       async function loadData() {
@@ -373,6 +386,9 @@
           return;
         }
 
+        // Set a larger width for the dropdown
+        itemsPerPageSelect.style.width = "115px"; // Adjust width as needed
+
         // Add default "Limit" option
         const defaultOption = document.createElement("option");
         defaultOption.value = "";
@@ -399,12 +415,16 @@
       }
 
       function renderPublications() {
-        const search = document.getElementById("search").value.toLowerCase();
+        const search = document
+          .getElementById("search")
+          .value.toLowerCase()
+          .trim();
         const authorOrcid = document.getElementById("filterAuthor").value; // Selected ORCID
         const year = document.getElementById("filterYear").value;
         const journal = document.getElementById("filterJournal").value;
 
-        const filtered = publications.filter((pub) => {
+        // Normalize and deduplicate publications by title (case-insensitive) if no search or filters are applied
+        let filteredPublications = publications.filter((pub) => {
           const matchesSearch =
             !search || JSON.stringify(pub).toLowerCase().includes(search);
           const matchesAuthor = !authorOrcid || pub.orcid === authorOrcid;
@@ -416,34 +436,50 @@
           );
         });
 
+        // Remove duplicates based on normalized title when no search or filters are applied
+        if (!search && !authorOrcid && !year && !journal) {
+          const seenTitles = new Set();
+          filteredPublications = filteredPublications.filter((pub) => {
+            const normalizedTitle = pub.title.toLowerCase().trim();
+            if (seenTitles.has(normalizedTitle)) {
+              return false;
+            }
+            seenTitles.add(normalizedTitle);
+            return true;
+          });
+        }
+
         const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginated = filtered.slice(startIndex, startIndex + itemsPerPage);
+        const paginated = filteredPublications.slice(
+          startIndex,
+          startIndex + itemsPerPage
+        );
 
         const publicationList = document.getElementById("publicationList");
         publicationList.innerHTML = paginated
           .map(
             (pub) => `
-                                <div class="card">
-                                <div class="card-body">
-                                        <h5 class="card-title">${pub.title}</h5>
-                                        <p class="card-text">Authors: ${pub.authors.join(
-                                          ", "
-                                        )}, ${pub.year}</p>
-                                        <a href="${
-                                          pub.url
-                                        }" target="_blank" class="btn btn-primary">Read More</a>
-                                        <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
-                                        <div class="bibtex" style="display: none;">
-                                        <pre>${pub.bibtex}</pre>
-                                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
-                                        </div>
-                                </div>
-                                </div>
-                        `
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">${pub.title}</h5>
+                <p class="card-text">Authors: ${pub.authors.join(", ")}, ${
+              pub.year
+            }</p>
+                <a href="${
+                  pub.url
+                }" target="_blank" class="btn btn-primary">Read More</a>
+                <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
+                <div class="bibtex" style="display: none;">
+                    <pre>${pub.bibtex}</pre>
+                    <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
+                </div>
+            </div>
+        </div>
+    `
           )
           .join("");
 
-        renderPagination(filtered.length);
+        renderPagination(filteredPublications.length);
       }
 
       function renderPagination(totalItems) {
@@ -499,6 +535,15 @@
 
         pagination.appendChild(paginationWrapper);
       }
+
+      // Set the current year in the copyright dynamically
+      function setCurrentYear() {
+        const currentYear = new Date().getFullYear();
+        document.getElementById("currentYear").textContent = currentYear;
+      }
+
+      // Call the function on page load
+      setCurrentYear();
 
       function toggleBibTeX(button) {
         const bibtex = button.nextElementSibling;
