@@ -6,9 +6,22 @@ from collections import defaultdict
 import re
 from pathlib import Path
 
+# Base directory for the project
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+
+# Paths for various directories
+CONFIG_DIR = BASE_DIR / "src" / "config"
+STATIC_DIR = BASE_DIR / "src" / "static"
+LOGS_DIR = BASE_DIR / "src" / "logs"
+TEMPLATES_DIR = BASE_DIR / "src" / "templates"
+BIB_DIR = STATIC_DIR / "bib"
+CSS_DIR = STATIC_DIR / "css"
+JS_DIR = STATIC_DIR / "js"
+
+
 # Function to load authors from a JSON file
 def load_authors():
-    with open(Path(__file__).parent / "authors.json", "r", encoding="utf-8") as f:
+    with open(CONFIG_DIR / "authors.json", "r", encoding="utf-8") as f:
         return json.load(f)
 
 # Load authors from the JSON file
@@ -156,27 +169,26 @@ for name, orcid in tqdm(author_ids.items(), desc="Processing Authors"):
     except Exception as e:
         print(f"Error processing {name} ({orcid}): {e}")
 
-with open('Publications.bib', 'w', encoding='utf-8') as bibtex_file:
+# Save BibTeX file
+with open(BIB_DIR / 'Publications.bib', 'w', encoding='utf-8') as bibtex_file:
     bibtex_file.write(all_bibtex_publications)
 
-# with open('Publications.json', 'w', encoding='utf-8') as json_file:
-#     json.dump(all_publications_json, json_file, indent=4)
+# Save skipped publications
+with open(LOGS_DIR / 'SkippedPublications.log', 'w', encoding='utf-8') as log_file:
+    for skipped in skipped_publications:
+        log_file.write(json.dumps(skipped) + '\n')
 
-# with open('SkippedPublications.log', 'w', encoding='utf-8') as log_file:
-#     for skipped in skipped_publications:
-#         log_file.write(json.dumps(skipped) + '\n')
+# Save statistics
+with open(LOGS_DIR / 'PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
+    stats = {
+        "publications_per_author": publications_per_author,
+        "publications_per_year": publications_per_year,
+        "publications_per_type": publications_per_type,
+        "total_publications": publication_count,
+        "total_skipped": len(skipped_publications),
+    }
+    json.dump(stats, stats_file, indent=4)
 
-# # Save statistics
-# with open('PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
-#     stats = {
-#         "publications_per_author": publications_per_author,
-#         "publications_per_year": publications_per_year,
-#         "publications_per_type": publications_per_type,
-#         "total_publications": publication_count,
-#         "total_skipped": len(skipped_publications),
-#     }
-#     json.dump(stats, stats_file, indent=4)
-
-# print(f"Processed {publication_count} valid publications in total.")
-# print(f"Skipped {len(skipped_publications)} invalid publications. Check 'SkippedPublications.log'.")
-# print(f"Statistics saved in 'PublicationStatistics.json'.")
+print(f"Processed {publication_count} valid publications in total.")
+print(f"Skipped {len(skipped_publications)} invalid publications. Check '{LOGS_DIR / 'SkippedPublications.log'}'.")
+print(f"Statistics saved in '{LOGS_DIR / 'PublicationStatistics.json'}'.")
