@@ -65,13 +65,11 @@ function updateURLParams() {
 
 // Load authors and publications dynamically
 async function loadData() {
-  // const authorResponse = await fetch("authors.json");
   const authorResponse = await fetch("/config/authors.json");
 
   authors = await authorResponse.json();
 
-  // const bibResponse = await fetch("pub.bib");
-  const bibResponse = await fetch("/static/bib/pub.bib");
+  const bibResponse = await fetch("/static/bib/Publications.bib");
   const bibText = await bibResponse.text();
   publications = parseBibTeX(bibText);
 

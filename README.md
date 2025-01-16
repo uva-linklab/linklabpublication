@@ -42,7 +42,7 @@ LINKLABPUBLICATION/
 │   │   └── scheduler.py        # Scheduler for periodic BibTeX generation
 │   ├── static/
 │   │   ├── bib/
-│   │   │   └── pub.bib         # BibTeX source file
+│   │   │   └── Publications.bib         # BibTeX source file
 │   │   ├── css/
 │   │   │   └── styles.css      # Frontend CSS
 │   │   ├── js/
