@@ -63,7 +63,7 @@ LINKLABPUBLICATION/
 ### **1. Clone the Repository**
 Clone this repository to your local machine:
 ```bash
-git clone https://github.com/yourusername/linklabpublication.git
+git clone https://github.com/uva-linklab/linklabpublication.git
 cd linklabpublication
 ```
 
