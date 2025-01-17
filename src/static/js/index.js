@@ -24,7 +24,7 @@ function loadFiltersFromURL() {
     document.getElementById("search").value = params.search;
   }
 
-  // Set the filters
+  // Pre-select filters based on URL parameters
   if (params.author) {
     document.getElementById("filterAuthor").value = params.author;
   }
@@ -60,7 +60,8 @@ function updateURLParams() {
     if (!params[key]) delete params[key];
   });
 
-  setQueryParams(params);
+  const query = new URLSearchParams(params).toString();
+  history.replaceState(null, "", "?" + query);
 }
 
 // Load authors and publications dynamically
@@ -79,7 +80,6 @@ async function loadData() {
   loadFiltersFromURL();
   renderPublications();
 }
-
 function parseBibTeX(bibText) {
   console.log("BibTeX File Content:", bibText);
 
@@ -149,10 +149,7 @@ function parseBibTeX(bibText) {
       // Log each entry
       console.log(`Parsed Entry ${index + 1}:`, publication);
     } catch (error) {
-      console.error(
-        `Error parsing BibTeX entry at index ${index}:`,
-        error
-      );
+      console.error(`Error parsing BibTeX entry at index ${index}:`, error);
     }
   });
 
@@ -261,9 +258,13 @@ function makeDropdownSearchable(dropdownId) {
   selectElement.parentElement.appendChild(wrapper);
 }
 
+// Populate dropdown filters
 function populateFilters() {
-  // Populate authors
   const authorSelect = document.getElementById("filterAuthor");
+  const yearSelect = document.getElementById("filterYear");
+  const journalSelect = document.getElementById("filterJournal");
+
+  // Populate authors
   const sortedAuthors = Object.entries(authors).sort(([aName], [bName]) =>
     aName.localeCompare(bName)
   );
@@ -275,10 +276,7 @@ function populateFilters() {
   });
 
   // Populate years
-  const yearSelect = document.getElementById("filterYear");
-  const years = [...new Set(publications.map((pub) => pub.year))].sort(
-    (a, b) => a - b
-  );
+  const years = [...new Set(publications.map((pub) => pub.year))].sort();
   years.forEach((year) => {
     const option = document.createElement("option");
     option.value = year;
@@ -287,22 +285,15 @@ function populateFilters() {
   });
 
   // Populate journals
-  const journalSelect = document.getElementById("filterJournal");
   const journals = [...new Set(publications.map((pub) => pub.journal))]
     .filter((j) => j)
-    .sort((a, b) => a.localeCompare(b));
+    .sort();
   journals.forEach((journal) => {
     const option = document.createElement("option");
     option.value = journal;
     option.textContent = journal;
     journalSelect.appendChild(option);
   });
-
-  // Add search functionality to dropdowns
-  makeDropdownSearchable("filterAuthor");
-  makeDropdownSearchable("filterYear");
-  makeDropdownSearchable("filterJournal");
-  populateItemsPerPage();
 }
 
 function populateItemsPerPage() {
@@ -342,42 +333,57 @@ function populateItemsPerPage() {
 
 function renderPublications() {
   const search = document
+
     .getElementById("search")
+
     .value.toLowerCase()
+
     .trim();
+
   const authorOrcid = document.getElementById("filterAuthor").value; // Selected ORCID
+
   const year = document.getElementById("filterYear").value;
+
   const journal = document.getElementById("filterJournal").value;
 
   // Split the search query into individual words
+
   const searchWords = search.split(/\s+/).filter((word) => word); // Remove empty strings
 
   // Filter publications based on search and selected filters
+
   let filteredPublications = publications.filter((pub) => {
     // Multi-word prefix search across BibTeX entry
+
     const matchesSearch =
       !searchWords.length ||
       searchWords.every(
         (searchWord) =>
           pub.bibtex
+
             .toLowerCase()
+
             .split(/\s+/) // Split BibTeX into words
+
             .some((bibWord) => bibWord.startsWith(searchWord)) // Prefix match for each search word
       );
 
     const matchesAuthor = !authorOrcid || pub.orcid === authorOrcid;
+
     const matchesYear = !year || pub.year == year;
+
     const matchesJournal = !journal || pub.journal === journal;
 
-    return (
-      matchesSearch && matchesAuthor && matchesYear && matchesJournal
-    );
+    return matchesSearch && matchesAuthor && matchesYear && matchesJournal;
   });
 
   // Deduplicate results based on (title + DOI/URL) and (author + year)
+
   const seenPublications = new Set();
+
   filteredPublications = filteredPublications.filter((pub) => {
     const normalizedTitle = pub.title.toLowerCase().trim();
+
     const identifier = `${normalizedTitle}|${
       pub.doi || pub.url || ""
     }|${pub.authors.join(",").toLowerCase()}|${pub.year}`;
@@ -385,6 +391,7 @@ function renderPublications() {
     if (seenPublications.has(identifier)) {
       return false; // Skip duplicates
     }
+
     seenPublications.add(identifier);
     return true; // Keep unique entries
   });
@@ -396,15 +403,20 @@ function renderPublications() {
   );
 
   const publicationList = document.getElementById("publicationList");
+
   publicationList.innerHTML = paginated
+
     .map(
       (pub) => `
+
 <div class="card">
+
   <div class="card-body">
+
     <h5 class="card-title">${pub.title}</h5>
-    <p class="card-text">Authors: ${pub.authors.join(", ")}, ${
-        pub.year
-      }</p>
+
+    <p class="card-text">Authors: ${pub.authors.join(", ")}, ${pub.year}</p>
+
     ${
       pub.doi || pub.url
         ? `<a href="${
@@ -412,17 +424,28 @@ function renderPublications() {
           }" target="_blank" class="btn btn-primary">Read More</a>`
         : ""
     }
+
     <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
+
     <div class="bibtex" style="display: none;">
+
         <pre>${pub.bibtex}</pre>
+
         <div id="bibtex-copied-message" class="mt-2" style="display: none;">Copied to clipboard!</div>
+
         <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
+
     </div>
+
   </div>
+
 </div>
+
 `
     )
+
     .join("");
+
   updateURLParams();
 
   renderPagination(filteredPublications.length);
@@ -553,12 +576,8 @@ function toggleTheme() {
     : "Switch to Dark Mode";
 }
 
-document
-  .getElementById("themeToggle")
-  .addEventListener("click", toggleTheme);
-document
-  .getElementById("search")
-  .addEventListener("input", renderPublications);
+document.getElementById("themeToggle").addEventListener("click", toggleTheme);
+document.getElementById("search").addEventListener("input", renderPublications);
 document
   .getElementById("filterAuthor")
   .addEventListener("change", renderPublications);
@@ -569,4 +588,25 @@ document
   .getElementById("filterJournal")
   .addEventListener("change", renderPublications);
 
-loadData();
+// loadData();
+
+// Add event listeners to update URL and render publications
+function addFilterListeners() {
+  document
+    .getElementById("search")
+    .addEventListener("input", renderPublications);
+  document
+    .getElementById("filterAuthor")
+    .addEventListener("change", renderPublications);
+  document
+    .getElementById("filterYear")
+    .addEventListener("change", renderPublications);
+  document
+    .getElementById("filterJournal")
+    .addEventListener("change", renderPublications);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadData();
+  addFilterListeners();
+});
