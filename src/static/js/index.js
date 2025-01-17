@@ -294,6 +294,8 @@ function populateFilters() {
     option.textContent = journal;
     journalSelect.appendChild(option);
   });
+
+  populateItemsPerPage();
 }
 
 function populateItemsPerPage() {
