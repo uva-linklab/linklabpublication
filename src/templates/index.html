@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UVA Link Lab Publications</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />    
+  </head>
+
+  <body>
+    <div class="navbar">
+      <div class="container d-flex justify-content-between align-items-center">
+        <h1>UVA Link Lab Publications</h1>
+        <button id="themeToggle" class="btn btn-dark btn-sm">
+          Switch to Dark Mode
+        </button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Filter Bar -->
+      <div class="filter-bar row">
+        <div class="col-md-3 mb-2">
+          <input
+            type="text"
+            id="search"
+            class="form-control"
+            placeholder="Search keywords..."
+          />
+        </div>
+        <div class="col-md-3 mb-2">
+          <select id="filterAuthor" class="form-select">
+            <option value="">Select Author</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-2">
+          <select id="filterYear" class="form-select">
+            <option value="">Select Year</option>
+          </select>
+        </div>
+        <div class="col-md-3 mb-2">
+          <select id="filterJournal" class="form-select">
+            <option value="">Select Journal</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Publication List -->
+      <div id="publicationList">
+      </div>
+
+      <!-- Pagination and Items Per Page -->
+      <div
+        class="pagination-container d-flex justify-content-between align-items-center"
+      >
+        <nav>
+          <ul class="pagination mb-0">
+            <li class="page-item">
+              <a class="page-link" href="#" id="prevPage">Previous</a>
+            </li>
+            <li class="page-item">
+              <a class="page-link" href="#" id="nextPage">Next</a>
+            </li>
+          </ul>
+        </nav>
+        <div class="items-per-page">
+          <select id="itemsPerPage" class="form-select form-select-sm"></select>
+        </div>
+      </div>
+    </div>
+
+    <footer style="margin-top: 20px">
+      &copy; <span id="currentYear"></span>
+      <a href="https://www.virginia.edu">University of Virginia</a>. All rights
+      reserved.
+    </footer>
+
+    <script src="/static/js/index.js"></script>
+
+  </body>
+</html>

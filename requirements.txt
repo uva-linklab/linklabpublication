@@ -1,8 +1,11 @@
-beautifulsoup4==4.12.3
-bs4==0.0.2
-pandas==1.5.0
-requests==2.28.1
+# Required for making API requests
+requests==2.31.0
+
+# Required for parsing and generating BibTeX files
+bibtexparser==1.4.0
+
+# Required for progress bars in terminal
 tqdm==4.64.1
-numpy==1.26.4
-scholarly==1.7.11
-bibtexparser==1.4.1
+
+# Required for scheduling periodic tasks
+schedule==1.1.0
