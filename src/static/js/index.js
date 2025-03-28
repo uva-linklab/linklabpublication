@@ -423,7 +423,7 @@ function renderPublications() {
       pub.doi || pub.url
         ? `<a href="${
             pub.doi ? `https://doi.org/${pub.doi}` : pub.url
-          }" target="_blank" class="btn btn-primary">Read More</a>`
+          }" target="_blank" class="btn btn-primary">Full paper</a>`
         : ""
     }
 
