@@ -20,6 +20,11 @@ body {
   font-size: 1.5rem;
 }
 
+.navbar h2 {
+  margin: 0;
+  font-size: 1.0rem;
+}
+
 .container {
   margin-top: 20px;
   flex: 1;
@@ -37,18 +42,6 @@ body {
 
 .card-body {
   padding: 20px;
-}
-
-.dark-mode .card {
-  background-color: #444;
-  color: #ddd;
-  border-color: #555;
-}
-
-.dark-mode .bibtex {
-  background-color: #333;
-  color: #ddd;
-  border: 1px solid #555;
 }
 
 .card,
@@ -109,23 +102,6 @@ body {
   border: 1px solid #ddd;
   padding: 10px;
   border-radius: 5px;
-}
-
-.dark-mode {
-  background-color: #222;
-  color: #ddd;
-}
-
-.dark-mode .navbar,
-.dark-mode footer {
-  background-color: #333;
-  color: #ddd;
-}
-
-.dark-mode .form-select {
-  color: #ddd;
-  background-color: #444;
-  border-color: #555;
 }
 
 footer {
