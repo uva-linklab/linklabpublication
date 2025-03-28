@@ -570,15 +570,6 @@ function showMessage(message) {
   }, 3000);
 }
 
-function toggleTheme() {
-  document.body.classList.toggle("dark-mode");
-  const themeToggle = document.getElementById("themeToggle");
-  themeToggle.textContent = document.body.classList.contains("dark-mode")
-    ? "Switch to Light Mode"
-    : "Switch to Dark Mode";
-}
-
-document.getElementById("themeToggle").addEventListener("click", toggleTheme);
 document.getElementById("search").addEventListener("input", renderPublications);
 document
   .getElementById("filterAuthor")
