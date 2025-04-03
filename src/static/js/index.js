@@ -334,6 +334,9 @@ function populateItemsPerPage() {
 }
 
 function renderPublications() {
+
+  updateFiltersByAuthor();
+  
   const search = document
 
     .getElementById("search")
@@ -506,6 +509,56 @@ function renderPagination(totalItems) {
 
   pagination.appendChild(paginationWrapper);
 }
+
+// Function to update dropdown menus based on selected author
+function updateFiltersByAuthor() {
+  const authorSelect = document.getElementById("filterAuthor");
+  const yearSelect = document.getElementById("filterYear");
+  const journalSelect = document.getElementById("filterJournal");
+
+  authorSelect.addEventListener("change", () => {
+    const selectedAuthorOrcid = authorSelect.value;
+
+    // Filter publications by the selected author
+    const filteredPublications = publications.filter(
+      (pub) => !selectedAuthorOrcid || pub.orcid === selectedAuthorOrcid
+    );
+
+    // Update the "filterYear" dropdown
+    const years = [...new Set(filteredPublications.map((pub) => pub.year))].sort();
+    yearSelect.innerHTML = ""; // Clear existing options
+    const defaultYearOption = document.createElement("option");
+    defaultYearOption.value = "";
+    defaultYearOption.textContent = "All Years";
+    yearSelect.appendChild(defaultYearOption);
+    years.forEach((year) => {
+      const option = document.createElement("option");
+      option.value = year;
+      option.textContent = year;
+      yearSelect.appendChild(option);
+    });
+
+    // Update the "filterJournal" dropdown
+    const journals = [...new Set(filteredPublications.map((pub) => pub.journal))]
+      .filter((j) => j)
+      .sort();
+    journalSelect.innerHTML = ""; // Clear existing options
+    const defaultJournalOption = document.createElement("option");
+    defaultJournalOption.value = "";
+    defaultJournalOption.textContent = "All Journals";
+    journalSelect.appendChild(defaultJournalOption);
+    journals.forEach((journal) => {
+      const option = document.createElement("option");
+      option.value = journal;
+      option.textContent = journal;
+      journalSelect.appendChild(option);
+    });
+
+    // Trigger a re-render of publications
+    //renderPublications();
+  });
+}
+
 
 // Set the current year in the copyright dynamically
 function setCurrentYear() {
