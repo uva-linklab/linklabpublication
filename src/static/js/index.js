@@ -393,8 +393,12 @@ function renderPublications() {
       return false; // Skip duplicates
     }
 
-    seenPublicationsDoi.add(identifierDoi);
-    seenPublicationsUrl.add(identifierUrl);
+    if (identifierDoi.trim().length > 0) {
+      seenPublicationsDoi.add(identifierDoi);
+    }
+    if (identifierUrl.trim().length > 0) {
+      seenPublicationsUrl.add(identifierUrl);
+    }
     return true; // Keep unique entries
   });
 
