@@ -423,11 +423,11 @@ function renderPublications() {
       pub.doi || pub.url
         ? `<a href="${
             pub.doi ? `https://doi.org/${pub.doi}` : pub.url
-          }" target="_blank" class="btn btn-primary">Full paper</a>`
+          }" target="_blank" class="btn btn-outline-primary">Full paper</a>`
         : ""
     }
 
-    <button class="btn btn-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
+    <button class="btn btn-outline-secondary" onclick="toggleBibTeX(this)">Show BibTeX</button>
 
     <div class="bibtex" style="display: none;">
 
@@ -435,7 +435,7 @@ function renderPublications() {
 
         <div id="bibtex-copied-message" class="mt-2" style="display: none;">Copied to clipboard!</div>
 
-        <button class="btn btn-sm btn-outline-primary mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
+        <button class="btn btn-sm btn-outline-dark mt-2" onclick="copyBibTeX(this)">Copy BibTeX</button>
 
     </div>
 
