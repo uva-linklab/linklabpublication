@@ -525,7 +525,7 @@ function updateFiltersByAuthor() {
     );
 
     // Update the "filterYear" dropdown
-    const years = [...new Set(filteredPublications.map((pub) => pub.year))].sort();
+    const years = [...new Set(filteredPublications.map((pub) => pub.year))].sort().reverse();
     yearSelect.innerHTML = ""; // Clear existing options
     const defaultYearOption = document.createElement("option");
     defaultYearOption.value = "";
