@@ -276,7 +276,7 @@ function populateFilters() {
   });
 
   // Populate years
-  const years = [...new Set(publications.map((pub) => pub.year))].sort();
+  const years = [...new Set(publications.map((pub) => pub.year))].sort().reverse();
   years.forEach((year) => {
     const option = document.createElement("option");
     option.value = year;
