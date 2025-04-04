@@ -455,6 +455,7 @@ function renderPublications() {
 
 function renderPagination(totalItems) {
   const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const maxlinkpages = Math.min(totalPages, 7); // Maximum number of pages to display
   const pagination = document.querySelector(".pagination");
   pagination.innerHTML = "";
 
@@ -476,17 +477,24 @@ function renderPagination(totalItems) {
   });
   paginationWrapper.appendChild(prevPage);
 
+  // Calculate the range of pages to display
+  lower_range_page = Math.max(1, currentPage - Math.floor(maxlinkpages / 2));
+  upper_range_page = Math.min(totalPages, Math.max(currentPage + Math.floor(maxlinkpages / 2),maxlinkpages));
+
   // Add page numbers dynamically
   for (let i = 1; i <= totalPages; i++) {
-    const pageItem = document.createElement("li");
-    pageItem.className = `page-item ${i === currentPage ? "active" : ""}`;
-    pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
-    pageItem.addEventListener("click", (e) => {
-      e.preventDefault();
-      currentPage = i;
-      renderPublications();
-    });
-    paginationWrapper.appendChild(pageItem);
+    if (i >= lower_range_page && i <= upper_range_page) {
+      // Show only a few pages around the current page
+      const pageItem = document.createElement("li");
+      pageItem.className = `page-item ${i === currentPage ? "active" : ""}`;
+      pageItem.innerHTML = `<a class="page-link" href="#">${i}</a>`;
+      pageItem.addEventListener("click", (e) => {
+        e.preventDefault();
+        currentPage = i;
+        renderPublications();
+      });
+      paginationWrapper.appendChild(pageItem);
+    }
   }
 
   // Add "Next" button
