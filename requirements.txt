@@ -9,3 +9,6 @@ tqdm==4.64.1
 
 # Required for scheduling periodic tasks
 schedule==1.1.0
+
+# Required for using the Open Alex API
+pyalex==0.18
