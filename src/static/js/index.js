@@ -417,7 +417,7 @@ function renderPublications() {
 
     <h5 class="card-title">${pub.title}</h5>
 
-    <p class="card-text">Authors: ${pub.authors.join(", ")}, ${pub.year}</p>
+    <p class="card-text">${pub.authors.join(", ")}, ${pub.journal}, ${pub.year}</p>
 
     ${
       pub.doi || pub.url
