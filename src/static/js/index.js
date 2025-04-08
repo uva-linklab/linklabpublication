@@ -379,22 +379,26 @@ function renderPublications() {
     return matchesSearch && matchesAuthor && matchesYear && matchesJournal;
   });
 
-  // Deduplicate results based on (title + DOI/URL) and (author + year)
+  // Deduplicate results based on repeated DOI or URL
 
-  const seenPublications = new Set();
+  const seenPublicationsDoi = new Set();
+  const seenPublicationsUrl = new Set();
 
   filteredPublications = filteredPublications.filter((pub) => {
-    const normalizedTitle = pub.title.toLowerCase().trim();
 
-    const identifier = `${normalizedTitle}|${
-      pub.doi || pub.url || ""
-    }|${pub.authors.join(",").toLowerCase()}|${pub.year}`;
+    const identifierDoi = `${pub.doi}`;
+    const identifierUrl = `${pub.url}`;
 
-    if (seenPublications.has(identifier)) {
+    if (seenPublicationsDoi.has(identifierDoi) || seenPublicationsUrl.has(identifierUrl)) {
       return false; // Skip duplicates
     }
 
-    seenPublications.add(identifier);
+    if (identifierDoi.trim().length > 0) {
+      seenPublicationsDoi.add(identifierDoi);
+    }
+    if (identifierUrl.trim().length > 0) {
+      seenPublicationsUrl.add(identifierUrl);
+    }
     return true; // Keep unique entries
   });
 
