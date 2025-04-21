@@ -37,31 +37,53 @@ def get_bibtex(pub, author_id):
     url = pub['doi']
     headers = {"accept": "application/x-bibtex"}
 
-    # Check if the BIBTEX is available for the DOI
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
-        bib_entry = response.text
-        return bib_entry.replace("{ ", f"{{ {author_id}:", 1)  # Format the id field to include the author_id
-    except requests.exceptions.RequestException as e:
-        print(f"Error fetching BibTeX from DOI url: {e}")
+    if url:
+        # Check if the BIBTEX is available for the DOI
+        try:
+            response = requests.get(url, headers=headers)
+            response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+            bib_entry = response.text
+            return bib_entry.replace("{ ", f"{{ {author_id}:", 1)  # Format the id field to include the author_id
+        except requests.exceptions.RequestException as e:
+            print(f"Error fetching BibTeX from DOI url: {e}")
+            print("Creating custom BibTeX entry instead.")
+            pass
+    else:
+        print(f"DOI URL is empty for publication: {pub['display_name']}")
         print("Creating custom BibTeX entry instead.")
-        pass
 
-    try:
-        pub_id = str(pub["id"])
+    try: 
+        # Check if the publication has a primary location, a source and a display name
+        if pub["primary_location"]:
+            pub_url = pub["primary_location"]["landing_page_url"]
+            if pub["primary_location"]["source"]:
+                if "display_name" in pub["primary_location"]["source"]:
+                    venue = pub["primary_location"]["source"]["display_name"]
+                    print(f"Venue: {venue}")
+                else:
+                    venue = None
+                    print(f"Venue unknown for publication: {pub['display_name']}")
+            else:
+                venue = None
+                print(f"Source unknown for publication: {pub['display_name']}")
+        else:
+            venue = None
+            pub_url = None
+            print(f"Primary location unknown for publication: {pub['display_name']}")
+
+
         # Create a custom BibTeX entry
         publication_entry = {
             'ENTRYTYPE': pub["type"].lower().replace("-", ""),
-            'ID': f"{author_id}:{pub_id}",
+            'ID': f"{author_id}:{str(pub['id'])}",
             'title': str(pub["title"]),
             'year': str(pub["publication_year"]),
             'month': str(month_name[int(pub['publication_date'].split('-')[1])]),
-            'journal': str(pub["primary_location"]["display_name"]),
+            'journal': str(venue),
             'volume': str(pub["biblio"]["volume"]),
             'issue': str(pub["biblio"]["issue"]),
             'pages': str(pub["biblio"]["first_page"]) + "-" + str(pub["biblio"]["last_page"]),
-            'url': str(pub["primary_location"]["landing_page_url"]),
+            'url': str(pub_url),
             'doi': str(pub["doi"]),
             'author': " and ".join([author["author"]["display_name"] for author in pub["authorships"]]),
         }
@@ -72,6 +94,9 @@ def get_bibtex(pub, author_id):
     except Exception as e:  
         print(f"Error creating custom BibTeX entry: {e}")
         print(f"Publication ID: {pub['id']}, Author ID: {author_id}, Display Name: {pub['display_name']}")
+        print(f"Publication: {pub['primary_location']}")
+        print(f"Publication: {pub}")
+        print(" ")
         return ""
 
 
