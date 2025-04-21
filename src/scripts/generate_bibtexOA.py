@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
 import pyalex
-from bibtexparser import dumps
-from bibtexparser.bibdatabase import BibDatabase
-from bibtexparser.bparser import BibTexParser
-from bibtexparser.customization import convert_to_unicode
-from collections import defaultdict
-import re
+import bibtexparser
 import json
+import requests
 from pathlib import Path
+from calendar import month_name
 
 # Base directory for the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -23,90 +19,153 @@ JS_DIR = STATIC_DIR / "js"
 
 VALID_PUBLICATION_TYPES = {'article'}
 
+
 # Function to load authors from a JSON file
-def load_authors(filename="authors.json"):
-    with open(CONFIG_DIR / filename, "r", encoding="utf-8") as f:
+def load_authors():
+    with open(CONFIG_DIR / "authors.json", "r", encoding="utf-8") as f:
         authors_json = json.load(f)
-    authors_ids = []
+        authors_ids = []
     for author, id in authors_json.items():
         print(f"Author: {author}, ID: {id}")
         authors_ids.append(id)
     return authors_ids
 
-def normalize_string(value):
-    """Normalize a string for case-insensitive and special character insensitive comparison."""
-    if not value:
+# Function to get bibtex  
+def get_bibtex(pub, author_id):
+
+    # Load the DOI URL  
+    url = pub['doi']
+    headers = {"accept": "application/x-bibtex"}
+
+    # Check if the BIBTEX is available for the DOI
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
+        bib_entry = response.text
+        return bib_entry.replace("{ ", f"{{ {author_id}:", 1)  # Format the id field to include the author_id
+    except requests.exceptions.RequestException as e:
+        print(f"Error fetching BibTeX from DOI url: {e}")
+        print("Creating custom BibTeX entry instead.")
+        pass
+
+    try:
+        pub_id = str(pub["id"])
+        # Create a custom BibTeX entry
+        publication_entry = {
+            'ENTRYTYPE': pub["type"].lower().replace("-", ""),
+            'ID': f"{author_id}:{pub_id}",
+            'title': str(pub["title"]),
+            'year': str(pub["publication_year"]),
+            'month': str(month_name[int(pub['publication_date'].split('-')[1])]),
+            'journal': str(pub["primary_location"]["display_name"]),
+            'volume': str(pub["biblio"]["volume"]),
+            'issue': str(pub["biblio"]["issue"]),
+            'pages': str(pub["biblio"]["first_page"]) + "-" + str(pub["biblio"]["last_page"]),
+            'url': str(pub["primary_location"]["landing_page_url"]),
+            'doi': str(pub["doi"]),
+            'author': " and ".join([author["author"]["display_name"] for author in pub["authorships"]]),
+        }
+
+        db = bibtexparser.bibdatabase.BibDatabase()
+        db.entries = [publication_entry]
+        return bibtexparser.dumps(db)
+    except Exception as e:  
+        print(f"Error creating custom BibTeX entry: {e}")
+        print(f"Publication ID: {pub['id']}, Author ID: {author_id}, Display Name: {pub['display_name']}")
         return ""
-    return re.sub(r'\s+', ' ', re.sub(r'[^\w\s]', '', value)).strip().lower()
 
-def create_bibtex_entry(work_data):
-    entry = {
-        'ENTRYTYPE': work_data['type'].lower().replace("-", ""),
-        "ID": work_data["id"].split("/")[-1],
-        "title": work_data["title"],
-        "author": " and ".join([author["author"]["display_name"] for author in work_data["authorships"]]),
-        "year": str(work_data["publication_year"])
-    }
-    for key, value in entry.items():
-        if value is None:
-            entry[key] = "Not available"
 
-    if work_data["primary_location"] and work_data["primary_location"]["source"]:
-      entry["journal"] = work_data["primary_location"]["source"]["display_name"]
+
+def update_publication_stats(publication_stats, publication_year, publication_type, author_id, valid=True):
+    # Update the publication statistics
+    publication_stats['total_number_of_publications'] += 1
+
+    # Check if the type of the publication is already in the dictionary
+    publication_stats['publications_per_type'].setdefault(publication_type,0)
+    publication_stats['publications_per_type'][publication_type] += 1
+
+    # Check if the publication is valid
+    if valid:
+        # Update valid publication statistics
+        publication_stats['total_number_of_valid_publications'] += 1
+        publication_stats['valid_publications_per_author'].setdefault(author_id, 0)
+        publication_stats['valid_publications_per_author'][author_id] += 1
+        publication_stats['valid_publications_per_year'].setdefault(publication_year, 0)
+        publication_stats['valid_publications_per_year'][publication_year] += 1
     else:
-      entry["journal"] = "Journal not available"
+        # Update skipped publication statistics
+        publication_stats['total_number_of_skipped_publications'] += 1
+        publication_stats['skipped_publications_per_author'].setdefault(author_id, 0)
+        publication_stats['skipped_publications_per_author'][author_id] += 1 
+        publication_stats['skipped_publications_per_year'].setdefault(publication_year, 0)
+        publication_stats['skipped_publications_per_year'][publication_year] += 1
 
-    if work_data["doi"]:
-        entry["doi"] = work_data["doi"]
-    else:
-        entry["doi"] = "DOI not available"
+    return publication_stats
 
-    db = BibDatabase()
-    db.entries = [entry]
-    
-    return dumps(db)
+# Function to generate a BibTeX and statistics for a group of authors
+def generate_bibtex_and_stats():
 
-def openalex_to_bibtex(author_ids):
-
-    all_publications = []
-    publication_search = pyalex.Works().filter(author={"id": ("|".join(author_ids))}).paginate(per_page=200)
-    
-    for page in publication_search:
-        if len(page) == 0:
-            break
-        for element in page:
-            all_publications.append(element)
-
-    valid_bibtex_publications = ""
-    skipped_publications = ""
-    print(f"Total publications found: {len(all_publications)}")
-    print("Generating bibtex entries...")
-    for pub in all_publications:
-        if pub["type"] not in VALID_PUBLICATION_TYPES:
-            skip_entry = create_bibtex_entry(pub)
-            skipped_publications += skip_entry
-            # print(f"Skipping invalid type: {pub["type"]} for publication {pub["title"]}")
-        else:
-            # Create BibTeX entry
-            bibtex_entry = create_bibtex_entry(pub)
-            valid_bibtex_publications += bibtex_entry
-    print("BibTeX entries generated successfully.")
-
-    return (valid_bibtex_publications, skipped_publications)
-
-
-if __name__ == "__main__":
     # Load authors from the JSON file
-    author_ids = load_authors("authorsOA.json")
+    author_ids = load_authors()
+    print(f"Loaded {len(author_ids)} authors from the configuration file.")
 
-    (valid_bibtex_publications, skipped_publications) = openalex_to_bibtex(author_ids)
+    # Initialize variables
+    valid_bibtex_publications = ""
+    skipped_bibtex_publications = ""
+    publication_stats = {'total_number_of_publications': 0,
+                         'total_number_of_valid_publications': 0,
+                         'total_number_of_skipped_publications': 0,
+                         'publications_per_type': {},
+                         'valid_publications_per_author': {},
+                         'skipped_publications_per_author': {},
+                         'valid_publications_per_year': {},
+                         'skipped_publications_per_year': {}
+                         }
+    
+    # PyAlex configuration
+    pyalex.config.email = "vas4d@virginia.edu"
+    pyalex.config.max_retries = 0
+    pyalex.config.retry_backoff_factor = 0.1
+    pyalex.config.retry_http_codes = [429, 500, 503]
+
+    for author_id in author_ids:
+        print(f"Fetching publications for author ID: {author_id}")
+
+        # Fetch publications from OpenAlex
+        publication_search = pyalex.Works().filter(author={"orcid":author_id}).paginate(per_page=200)
+        
+        for page in publication_search:
+            if len(page) == 0:
+                break
+            for pub in page:
+                if (pub["type"] not in VALID_PUBLICATION_TYPES) or ('ALL' in VALID_PUBLICATION_TYPES):
+                    publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'], author_id, valid=False)
+                    skipped_bibtex_publications += get_bibtex(pub, author_id)
+                else:
+                    publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'],author_id, valid=True)
+                    valid_bibtex_publications += get_bibtex(pub, author_id)
+
+    return (valid_bibtex_publications,skipped_bibtex_publications,publication_stats)
+
+
+# IF this script is run directly, execute the main function
+if __name__ == "__main__":
+    
+    # Generate BibTeX and statistics
+    (valid_bibtex_publications,skipped_bibtex_publications,publication_stats) = generate_bibtex_and_stats()
+    
+    print("BibTeX entries generated successfully!")
+    print(" ")
+    print(f"Publication statitics:\n{json.dumps(publication_stats, indent=4)}")
 
     # Save BibTeX file
     with open(BIB_DIR / 'Publications.bib', 'w', encoding='utf-8') as bibtex_file:
         bibtex_file.write(valid_bibtex_publications)
 
     # Save skipped publications
-    with open(BIB_DIR  / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
-        bibtex_file.write(skipped_publications)
+    with open(LOGS_DIR / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
+        bibtex_file.write(skipped_bibtex_publications)
 
-
+    # Save statistics
+    with open(LOGS_DIR / 'PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
+        json.dump(publication_stats, stats_file, indent=4)
