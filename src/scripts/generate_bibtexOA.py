@@ -43,7 +43,7 @@ def get_bibtex(pub, author_id):
             response = requests.get(url, headers=headers)
             response.raise_for_status()  # Raise HTTPError for bad responses (4xx or 5xx)
             bib_entry = response.text
-            return bib_entry.replace("{ ", f"{{ {author_id}:", 1)  # Format the id field to include the author_id
+            return bib_entry.replace("{", f"{{{author_id}:", 1)  # Format the id field to include the author_id
         except requests.exceptions.RequestException as e:
             print(f"Error fetching BibTeX from DOI url: {e}")
             print("Creating custom BibTeX entry instead.")
@@ -165,7 +165,7 @@ def generate_bibtex_and_stats():
             for pub in page:
                 if (pub["type"] not in VALID_PUBLICATION_TYPES) or ('ALL' in VALID_PUBLICATION_TYPES):
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'], author_id, valid=False)
-                    skipped_bibtex_publications += get_bibtex(pub, author_id)
+                    # skipped_bibtex_publications += get_bibtex(pub, author_id)
                 else:
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'],author_id, valid=True)
                     valid_bibtex_publications += get_bibtex(pub, author_id)
@@ -188,8 +188,8 @@ if __name__ == "__main__":
         bibtex_file.write(valid_bibtex_publications)
 
     # Save skipped publications
-    with open(LOGS_DIR / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
-        bibtex_file.write(skipped_bibtex_publications)
+    # with open(BIB_DIR / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
+    #     bibtex_file.write(skipped_bibtex_publications)
 
     # Save statistics
     with open(LOGS_DIR / 'PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:

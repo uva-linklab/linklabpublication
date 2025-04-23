@@ -66,8 +66,8 @@ function updateURLParams() {
 
 // Load authors and publications dynamically
 async function loadData() {
-  // const authorResponse = await fetch("authors.json");
-  const authorResponse = await fetch("/config/authorsOA.json");
+  // Fetch authors from JSON file
+  const authorResponse = await fetch("/config/authors.json");
 
   authors = await authorResponse.json();
 
