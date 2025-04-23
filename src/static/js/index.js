@@ -333,7 +333,27 @@ function populateItemsPerPage() {
   });
 }
 
-function renderPublications() {
+function renderPublications(event = new Event("input")) {
+
+  
+  if (event.target !== null) {
+
+    // Check if the event target is one of the filter dropdowns
+    const target = event.target.getAttribute("id");
+    currentPage = 1; // Reset to the first page when filters change
+
+    // Reset other filters based on the current target
+    if (target == "filterAuthor") {
+      document.getElementById("filterYear").value = ""; // Reset year filter
+      document.getElementById("filterJournal").value = ""; // Reset journal filter
+    }
+    if (target == "filterYear") {
+      document.getElementById("filterJournal").value = ""; // Reset journal filter
+    }
+    if (target == "filterJournal") {
+      document.getElementById("filterYear").value = ""; // Reset year filter
+    }
+  }
 
   updateFiltersByAuthor();
   
@@ -638,13 +658,13 @@ function showMessage(message) {
 document.getElementById("search").addEventListener("input", renderPublications);
 document
   .getElementById("filterAuthor")
-  .addEventListener("change", renderPublications);
+  .addEventListener("change", renderPublications, false);
 document
   .getElementById("filterYear")
-  .addEventListener("change", renderPublications);
+  .addEventListener("change", renderPublications, false);
 document
   .getElementById("filterJournal")
-  .addEventListener("change", renderPublications);
+  .addEventListener("change", renderPublications, false);
 
 // loadData();
 
@@ -652,16 +672,16 @@ document
 function addFilterListeners() {
   document
     .getElementById("search")
-    .addEventListener("input", renderPublications);
+    .addEventListener("input", renderPublications, false);
   document
     .getElementById("filterAuthor")
-    .addEventListener("change", renderPublications);
+    .addEventListener("change", renderPublications, false);
   document
     .getElementById("filterYear")
-    .addEventListener("change", renderPublications);
+    .addEventListener("change", renderPublications, false);
   document
     .getElementById("filterJournal")
-    .addEventListener("change", renderPublications);
+    .addEventListener("change", renderPublications, false);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
