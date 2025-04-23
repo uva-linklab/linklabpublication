@@ -485,7 +485,7 @@ function renderPagination(totalItems) {
   paginationWrapper.appendChild(prevPage);
 
   // Calculate the range of pages to display
-  lower_range_page = Math.max(1, currentPage - Math.floor(maxlinkpages / 2));
+  lower_range_page = Math.max(1, Math.min(currentPage - Math.floor(maxlinkpages / 2),totalPages-maxlinkpages));
   upper_range_page = Math.min(totalPages, Math.max(currentPage + Math.floor(maxlinkpages / 2),maxlinkpages));
 
   // Add page numbers dynamically
@@ -504,18 +504,20 @@ function renderPagination(totalItems) {
     }
   }
 
-  // Add "Last" button
-  const lastPage = document.createElement("li");
-  lastPage.className = `page-item ${
-    currentPage === totalPages ? "disabled" : ""
-  }`;
-  lastPage.innerHTML = `<a class="page-link" href="#">... ${totalPages}</a>`;
-  lastPage.addEventListener("click", (e) => {
-    e.preventDefault();
-    currentPage = totalPages;
-    renderPublications();
-  });
-  paginationWrapper.appendChild(lastPage);
+  // Add "Last" button only if last page is not already shown
+  if (upper_range_page < totalPages){
+    const lastPage = document.createElement("li");
+    lastPage.className = `page-item ${
+      currentPage === totalPages ? "disabled" : ""
+    }`;
+    lastPage.innerHTML = `<a class="page-link" href="#">... ${totalPages}</a>`;
+    lastPage.addEventListener("click", (e) => {
+      e.preventDefault();
+      currentPage = totalPages;
+      renderPublications();
+    });
+    paginationWrapper.appendChild(lastPage);
+}
 
 
   // Add "Next" button
