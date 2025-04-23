@@ -1,0 +1,5 @@
+bibtexparser==1.4.0
+pyalex==0.18
+Requests==2.31.0
+schedule==1.1.0
+tqdm==4.64.1
