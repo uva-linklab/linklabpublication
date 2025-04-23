@@ -504,6 +504,20 @@ function renderPagination(totalItems) {
     }
   }
 
+  // Add "Last" button
+  const lastPage = document.createElement("li");
+  lastPage.className = `page-item ${
+    currentPage === totalPages ? "disabled" : ""
+  }`;
+  lastPage.innerHTML = `<a class="page-link" href="#">... ${totalPages}</a>`;
+  lastPage.addEventListener("click", (e) => {
+    e.preventDefault();
+    currentPage = totalPages;
+    renderPublications();
+  });
+  paginationWrapper.appendChild(lastPage);
+
+
   // Add "Next" button
   const nextPage = document.createElement("li");
   nextPage.className = `page-item ${
@@ -518,20 +532,6 @@ function renderPagination(totalItems) {
     }
   });
   paginationWrapper.appendChild(nextPage);
-
-
-  // Add "Last" button
-  const lastPage = document.createElement("li");
-  lastPage.className = `page-item ${
-    currentPage === totalPages ? "disabled" : ""
-  }`;
-  lastPage.innerHTML = `<a class="page-link" href="#">Last (${totalPages})</a>`;
-  lastPage.addEventListener("click", (e) => {
-    e.preventDefault();
-    currentPage = totalPages;
-    renderPublications();
-  });
-  paginationWrapper.appendChild(lastPage);
 
 
   pagination.appendChild(paginationWrapper);
