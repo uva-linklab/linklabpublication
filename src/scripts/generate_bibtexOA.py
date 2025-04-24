@@ -190,7 +190,7 @@ def generate_bibtex_and_stats():
             for pub in page:
                 if (pub["type"] not in VALID_PUBLICATION_TYPES) or ('ALL' in VALID_PUBLICATION_TYPES):
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'], author, valid=False)
-                    skipped_bibtex_publications += get_bibtex(pub, author_id)
+                    # skipped_bibtex_publications += get_bibtex(pub, author_id)
                 else:
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'],author, valid=True)
                     valid_bibtex_publications += get_bibtex(pub, author_id)
