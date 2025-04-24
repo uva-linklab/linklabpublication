@@ -154,6 +154,24 @@ function parseBibTeX(bibText) {
   });
 
   console.log("Parsed Publications:", publications);
+  publications.sort((firstItem, secondItem) => {
+    const months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December'
+    ];
+    
+    return (100*secondItem.year+(months.indexOf(secondItem.month) + 1)) - (100*firstItem.year+(months.indexOf(firstItem.month) + 1))
+  })
   return publications;
 }
 
