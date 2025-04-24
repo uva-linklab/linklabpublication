@@ -80,6 +80,19 @@ async function loadData() {
   loadFiltersFromURL();
   renderPublications();
 }
+
+// Function to format BibTeX entries
+function formatBibTeX(bib_header, bib_contents) {
+
+  // Generates the formated JSON string from BibTeX contents
+  const fmt_bib_contents = JSON.stringify(bib_contents, null, 5);
+
+  // Return the formatted BibTeX text
+  return bib_header+","+fmt_bib_contents.replaceAll("\"","").slice(1);
+}
+
+
+// Function to parse BibTeX entries
 function parseBibTeX(bibText) {
   console.log("BibTeX File Content:", bibText);
 
@@ -105,13 +118,19 @@ function parseBibTeX(bibText) {
       // Match fields, accounting for nested braces
       const fieldRegex = /(\w+)\s*=\s*({(?:[^{}]|{[^{}]*})*})/gs;
       const fields = {};
+      const bib_contents = {}; 
       let match;
 
       while ((match = fieldRegex.exec(entry)) !== null) {
         const key = match[1].toLowerCase().trim(); // Normalize field keys
-        const value = match[2].replace(/^{|}$/g, "").trim(); // Remove outer braces and trim
+        const originalValue = match[2].trim(); // Preserve original value for BibTex reformating
+        const value = originalValue.replace(/^{|}$/g, ""); // Remove outer braces
+
         fields[key] = value;
+        bib_contents[key] = originalValue; 
       }
+
+      bib_header = entry.split(",")[0]; // Extract the BibTeX header
 
       // Normalize and parse specific fields
       const authors = fields.author
@@ -141,7 +160,7 @@ function parseBibTeX(bibText) {
         volume: fields.volume || "",
         doi,
         url,
-        bibtex: entry.trim(), // Preserve original BibTeX entry
+        bibtex: formatBibTeX(bib_header, bib_contents), // Formated BibTeX entry
       };
 
       publications.push(publication);
