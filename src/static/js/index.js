@@ -135,7 +135,7 @@ function parseBibTeX(bibText) {
         type,
         authors,
         title: fields.title || "",
-        journal: fields.journal || "",
+        journal: fields.journal || fields.booktitle || "",
         year: fields.year || "",
         month: fields.month || "",
         volume: fields.volume || "",
