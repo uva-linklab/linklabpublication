@@ -121,6 +121,19 @@ async function loadData() {
   loadFiltersFromURL();
   renderPublications();
 }
+
+// Function to format BibTeX entries
+function formatBibTeX(bib_header, bib_contents) {
+
+  // Generates the formated JSON string from BibTeX contents
+  const fmt_bib_contents = JSON.stringify(bib_contents, null, 5);
+
+  // Return the formatted BibTeX text
+  return bib_header+","+fmt_bib_contents.replaceAll("\"","").slice(1);
+}
+
+
+// Function to parse BibTeX entries
 function parseBibTeX(bibText) {
   console.log("BibTeX File Content:", bibText);
 
@@ -146,26 +159,33 @@ function parseBibTeX(bibText) {
       // Match fields, accounting for nested braces
       const fieldRegex = /(\w+)\s*=\s*({(?:[^{}]|{[^{}]*})*})/gs;
       const fields = {};
+      const bib_contents = {}; 
       let match;
 
       while ((match = fieldRegex.exec(entry)) !== null) {
         const key = match[1].toLowerCase().trim(); // Normalize field keys
-        const value = match[2].replace(/^{|}$/g, "").trim(); // Remove outer braces and trim
-        fields[key] = value;
-      }
+        const originalValue = match[2].trim(); // Preserve original value for BibTex reformating
+        const value = originalValue.replace(/^{|}$/g, ""); // Remove outer braces
 
+        fields[key] = value;
+        bib_contents[key] = originalValue; 
+      }
+      
       // If the month field could not be found inside braces, try to search ignoring braces
       if ((fields.month || "").length===0){
         const monthRegex = /month=([A-Za-z]+)(?:,|\s*\})/i;
         match = monthRegex.exec(entry)
         if (match == null){
           fields["month"] = ""; // if no month field is found
+          bib_contents["month"] = "";
         } else{
           fields["month"] = match[1].trim(); // if month field is found
+          bib_contents["month"] = match[1].trim();
         }
       }
       
-
+      bib_header = entry.split(",")[0];
+      
       // Normalize and parse specific fields
       const authors = fields.author
         ? fields.author.split(" and ").map((author) => author.trim())
@@ -187,7 +207,7 @@ function parseBibTeX(bibText) {
       const month = fields.month || "";
       const volume = fields.volume || "";
       const date_index = getDateIndex(year, month); // Index to sort publications
-      const bibtex = entry.trim(); // Preserve original BibTeX entry
+      const bibtex = formatBibTeX(bib_header, bib_contents); // Formated BibTeX entry
 
       const publication = {
         id,
