@@ -330,7 +330,7 @@ function populateItemsPerPage() {
   // Add default "Limit" option
   const defaultOption = document.createElement("option");
   defaultOption.value = "";
-  defaultOption.textContent = "Limit";
+  defaultOption.textContent = itemsPerPage;
   defaultOption.disabled = true; // Make it non-selectable
   defaultOption.selected = true; // Set as the default selected option
   itemsPerPageSelect.appendChild(defaultOption);
@@ -463,7 +463,7 @@ function renderPublications(event = new Event("input")) {
 
     <h5 class="card-title">${pub.title}</h5>
 
-    <p class="card-text">${pub.authors.join(", ")}, ${pub.journal}, ${pub.year}</p>
+    <p class="card-text">${pub.authors.join("; ")}, ${pub.journal}, ${pub.year}</p>
 
     ${
       pub.doi || pub.url
@@ -613,7 +613,7 @@ function updateFiltersByAuthor() {
     journalSelect.innerHTML = ""; // Clear existing options
     const defaultJournalOption = document.createElement("option");
     defaultJournalOption.value = "";
-    defaultJournalOption.textContent = "All Journals";
+    defaultJournalOption.textContent = "All Venues";
     journalSelect.appendChild(defaultJournalOption);
     journals.forEach((journal) => {
       const option = document.createElement("option");
