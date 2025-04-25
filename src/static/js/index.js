@@ -41,6 +41,7 @@ function loadFiltersFromURL() {
   }
   if (params.itemsPerPage) {
     itemsPerPage = parseInt(params.itemsPerPage, 10) || 20;
+    document.getElementById("itemsPerPage").value = itemsPerPage;
   }
 }
 
@@ -309,9 +310,10 @@ function populateFilters() {
     .sort();
   journals.forEach((journal) => {
     const option = document.createElement("option");
+    const max_string_length = 60;
     option.value = journal;
-    if (journal.length>40){
-      option.textContent = journal.substring(0, 37)+"...";
+    if (journal.length>max_string_length){
+      option.textContent = journal.substring(0, max_string_length-3)+"...";
     } else{
       option.textContent = journal;
     }
@@ -329,15 +331,15 @@ function populateItemsPerPage() {
   }
 
   // Set a larger width for the dropdown
-  itemsPerPageSelect.style.width = "115px"; // Adjust width as needed
+  itemsPerPageSelect.style.width = "100px"; // Adjust width as needed
 
   // Add default "Limit" option
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = itemsPerPage;
-  defaultOption.disabled = true; // Make it non-selectable
-  defaultOption.selected = true; // Set as the default selected option
-  itemsPerPageSelect.appendChild(defaultOption);
+  // const defaultOption = document.createElement("option");
+  // defaultOption.value = "";
+  // defaultOption.textContent = itemsPerPage;
+  // defaultOption.disabled = true; // Make it non-selectable
+  // defaultOption.selected = true; // Set as the default selected option
+  // itemsPerPageSelect.appendChild(defaultOption);
 
   // Add other options
   [10, 20, 30, 40, 50, 60, 70, "All"].forEach((value) => {
@@ -346,6 +348,8 @@ function populateItemsPerPage() {
     option.textContent = value;
     itemsPerPageSelect.appendChild(option);
   });
+
+  itemsPerPageSelect.value = itemsPerPage;
 
   itemsPerPageSelect.addEventListener("change", (e) => {
     const selected = e.target.value;
@@ -616,14 +620,15 @@ function updateFiltersByAuthor() {
       .sort();
     journalSelect.innerHTML = ""; // Clear existing options
     const defaultJournalOption = document.createElement("option");
+    const max_string_length = 60;
     defaultJournalOption.value = "";
     defaultJournalOption.textContent = "All Venues";
     journalSelect.appendChild(defaultJournalOption);
     journals.forEach((journal) => {
       const option = document.createElement("option");
       option.value = journal;
-      if (journal.length>40){
-        option.textContent = journal.substring(0, 37)+"...";
+      if (journal.length>max_string_length){
+        option.textContent = journal.substring(0, max_string_length-3)+"...";
       } else{
         option.textContent = journal;
       }
