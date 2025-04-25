@@ -41,6 +41,7 @@ function loadFiltersFromURL() {
   }
   if (params.itemsPerPage) {
     itemsPerPage = parseInt(params.itemsPerPage, 10) || 20;
+    document.getElementById("itemsPerPage").value = itemsPerPage;
   }
 }
 
@@ -371,8 +372,13 @@ function populateFilters() {
     .sort();
   journals.forEach((journal) => {
     const option = document.createElement("option");
+    const max_string_length = 60;
     option.value = journal;
-    option.textContent = journal;
+    if (journal.length>max_string_length){
+      option.textContent = journal.substring(0, max_string_length-3)+"...";
+    } else{
+      option.textContent = journal;
+    }
     journalSelect.appendChild(option);
   });
 
@@ -387,15 +393,15 @@ function populateItemsPerPage() {
   }
 
   // Set a larger width for the dropdown
-  itemsPerPageSelect.style.width = "115px"; // Adjust width as needed
+  itemsPerPageSelect.style.width = "100px"; // Adjust width as needed
 
   // Add default "Limit" option
-  const defaultOption = document.createElement("option");
-  defaultOption.value = "";
-  defaultOption.textContent = "Limit";
-  defaultOption.disabled = true; // Make it non-selectable
-  defaultOption.selected = true; // Set as the default selected option
-  itemsPerPageSelect.appendChild(defaultOption);
+  // const defaultOption = document.createElement("option");
+  // defaultOption.value = "";
+  // defaultOption.textContent = itemsPerPage;
+  // defaultOption.disabled = true; // Make it non-selectable
+  // defaultOption.selected = true; // Set as the default selected option
+  // itemsPerPageSelect.appendChild(defaultOption);
 
   // Add other options
   [10, 20, 30, 40, 50, 60, 70, "All"].forEach((value) => {
@@ -404,6 +410,8 @@ function populateItemsPerPage() {
     option.textContent = value;
     itemsPerPageSelect.appendChild(option);
   });
+
+  itemsPerPageSelect.value = itemsPerPage;
 
   itemsPerPageSelect.addEventListener("change", (e) => {
     const selected = e.target.value;
@@ -527,7 +535,7 @@ function renderPublications(event = new Event("input")) {
 
     <h5 class="card-title">${pub.title}</h5>
 
-    <p class="card-text">${pub.authors.join(", ")}, ${pub.journal}, ${pub.year}</p>
+    <p class="card-text">${pub.authors.join("; ")}, ${pub.journal}, ${pub.year}</p>
 
     ${
       pub.doi || pub.url
@@ -676,13 +684,18 @@ function updateFiltersByAuthor() {
       .sort();
     journalSelect.innerHTML = ""; // Clear existing options
     const defaultJournalOption = document.createElement("option");
+    const max_string_length = 60;
     defaultJournalOption.value = "";
-    defaultJournalOption.textContent = "All Journals";
+    defaultJournalOption.textContent = "All Venues";
     journalSelect.appendChild(defaultJournalOption);
     journals.forEach((journal) => {
       const option = document.createElement("option");
       option.value = journal;
-      option.textContent = journal;
+      if (journal.length>max_string_length){
+        option.textContent = journal.substring(0, max_string_length-3)+"...";
+      } else{
+        option.textContent = journal;
+      }
       journalSelect.appendChild(option);
     });
 
