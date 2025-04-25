@@ -310,7 +310,11 @@ function populateFilters() {
   journals.forEach((journal) => {
     const option = document.createElement("option");
     option.value = journal;
-    option.textContent = journal;
+    if (journal.length>40){
+      option.textContent = journal.substring(0, 37)+"...";
+    } else{
+      option.textContent = journal;
+    }
     journalSelect.appendChild(option);
   });
 
@@ -618,7 +622,11 @@ function updateFiltersByAuthor() {
     journals.forEach((journal) => {
       const option = document.createElement("option");
       option.value = journal;
-      option.textContent = journal;
+      if (journal.length>40){
+        option.textContent = journal.substring(0, 37)+"...";
+      } else{
+        option.textContent = journal;
+      }
       journalSelect.appendChild(option);
     });
 
