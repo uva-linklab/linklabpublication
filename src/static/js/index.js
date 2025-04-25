@@ -64,6 +64,47 @@ function updateURLParams() {
   history.replaceState(null, "", "?" + query);
 }
 
+
+function getDateIndex(input_year, input_month) {
+  const months = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december'
+  ];
+  const months_abrv = [
+    'jan',
+    'feb',
+    'mar', 
+    'apr', 
+    'may', 
+    'jun', 
+    'jul', 
+    'aug', 
+    'sep', 
+    'oct', 
+    'nov', 
+    'dec'];
+    if (input_month.length===0){
+      input_month='feb';
+    }
+    if (input_year.length===0){
+      input_year=1950;
+    }
+    input_month_value = input_month.toLowerCase();
+    input_month_index = Math.max(months.indexOf(input_month_value), months_abrv.indexOf(input_month_value))+1;
+  
+  return 100*input_year+input_month_index;
+}
+
 // Load authors and publications dynamically
 async function loadData() {
   // Fetch authors from JSON file
@@ -113,6 +154,18 @@ function parseBibTeX(bibText) {
         fields[key] = value;
       }
 
+      // If the month field could not be found inside braces, try to search ignoring braces
+      if ((fields.month || "").length===0){
+        const monthRegex = /month=([A-Za-z]+)(?:,|\s*\})/i;
+        match = monthRegex.exec(entry)
+        if (match == null){
+          fields["month"] = ""; // if no month field is found
+        } else{
+          fields["month"] = match[1].trim(); // if month field is found
+        }
+      }
+      
+
       // Normalize and parse specific fields
       const authors = fields.author
         ? fields.author.split(" and ").map((author) => author.trim())
@@ -128,20 +181,28 @@ function parseBibTeX(bibText) {
         );
         return;
       }
+      const title =  fields.title || "";
+      const journal = fields.journal || fields.booktitle || "";
+      const year =  fields.year || "";
+      const month = fields.month || "";
+      const volume = fields.volume || "";
+      const date_index = getDateIndex(year, month); // Index to sort publications
+      const bibtex = entry.trim(); // Preserve original BibTeX entry
 
       const publication = {
         id,
         orcid,
         type,
         authors,
-        title: fields.title || "",
-        journal: fields.journal || fields.booktitle || "",
-        year: fields.year || "",
-        month: fields.month || "",
-        volume: fields.volume || "",
+        title,
+        journal,
+        year,
+        month,
+        volume,
         doi,
         url,
-        bibtex: entry.trim(), // Preserve original BibTeX entry
+        date_index,
+        bibtex, 
       };
 
       publications.push(publication);
@@ -154,24 +215,6 @@ function parseBibTeX(bibText) {
   });
 
   console.log("Parsed Publications:", publications);
-  publications.sort((firstItem, secondItem) => {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December'
-    ];
-    
-    return (100*secondItem.year+(months.indexOf(secondItem.month) + 1)) - (100*firstItem.year+(months.indexOf(firstItem.month) + 1))
-  })
   return publications;
 }
 
@@ -424,6 +467,8 @@ function renderPublications(event = new Event("input")) {
 
   const seenPublicationsDoi = new Set();
   const seenPublicationsUrl = new Set();
+
+  filteredPublications = filteredPublications.sort((a, b) => b.date_index - a.date_index)
 
   filteredPublications = filteredPublications.filter((pub) => {
 
