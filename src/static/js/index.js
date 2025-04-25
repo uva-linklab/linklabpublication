@@ -64,6 +64,47 @@ function updateURLParams() {
   history.replaceState(null, "", "?" + query);
 }
 
+
+function getDateIndex(input_year, input_month) {
+  const months = [
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december'
+  ];
+  const months_abrv = [
+    'jan',
+    'feb',
+    'mar', 
+    'apr', 
+    'may', 
+    'jun', 
+    'jul', 
+    'aug', 
+    'sep', 
+    'oct', 
+    'nov', 
+    'dec'];
+    if (input_month.length===0){
+      input_month='feb';
+    }
+    if (input_year.length===0){
+      input_year=1950;
+    }
+    input_month_value = input_month.toLowerCase();
+    input_month_index = Math.max(months.indexOf(input_month_value), months_abrv.indexOf(input_month_value))+1;
+  
+  return 100*input_year+input_month_index;
+}
+
 // Load authors and publications dynamically
 async function loadData() {
   // Fetch authors from JSON file
@@ -129,9 +170,22 @@ function parseBibTeX(bibText) {
         fields[key] = value;
         bib_contents[key] = originalValue; 
       }
-
-      bib_header = entry.split(",")[0]; // Extract the BibTeX header
-
+      
+      // If the month field could not be found inside braces, try to search ignoring braces
+      if ((fields.month || "").length===0){
+        const monthRegex = /month=([A-Za-z]+)(?:,|\s*\})/i;
+        match = monthRegex.exec(entry)
+        if (match == null){
+          fields["month"] = ""; // if no month field is found
+          bib_contents["month"] = "";
+        } else{
+          fields["month"] = match[1].trim(); // if month field is found
+          bib_contents["month"] = match[1].trim();
+        }
+      }
+      
+      bib_header = entry.split(",")[0];
+      
       // Normalize and parse specific fields
       const authors = fields.author
         ? fields.author.split(" and ").map((author) => author.trim())
@@ -147,20 +201,28 @@ function parseBibTeX(bibText) {
         );
         return;
       }
+      const title =  fields.title || "";
+      const journal = fields.journal || fields.booktitle || "";
+      const year =  fields.year || "";
+      const month = fields.month || "";
+      const volume = fields.volume || "";
+      const date_index = getDateIndex(year, month); // Index to sort publications
+      const bibtex = formatBibTeX(bib_header, bib_contents); // Formated BibTeX entry
 
       const publication = {
         id,
         orcid,
         type,
         authors,
-        title: fields.title || "",
-        journal: fields.journal || fields.booktitle || "",
-        year: fields.year || "",
-        month: fields.month || "",
-        volume: fields.volume || "",
+        title,
+        journal,
+        year,
+        month,
+        volume,
         doi,
         url,
-        bibtex: formatBibTeX(bib_header, bib_contents), // Formated BibTeX entry
+        date_index,
+        bibtex, 
       };
 
       publications.push(publication);
@@ -425,6 +487,8 @@ function renderPublications(event = new Event("input")) {
 
   const seenPublicationsDoi = new Set();
   const seenPublicationsUrl = new Set();
+
+  filteredPublications = filteredPublications.sort((a, b) => b.date_index - a.date_index)
 
   filteredPublications = filteredPublications.filter((pub) => {
 
