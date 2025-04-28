@@ -202,6 +202,15 @@ function parseBibTeX(bibText) {
         );
         return;
       }
+
+      // Skip entries with non latin characters
+      if (/[^\u0000-\u007F]/.test(entry)) {
+        console.log(
+          `Skipping entry with ID ${id} due to special non latin characters.`
+        );
+        return;
+      }
+
       const title =  fields.title || "";
       const journal = fields.journal || fields.booktitle || "";
       const year =  fields.year || "";
