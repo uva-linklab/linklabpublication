@@ -453,6 +453,8 @@ function renderPublications(event = new Event("input")) {
     }
   }
 
+  
+  updateFilterBySearch();
   updateFiltersByAuthor();
   
   const search = document
@@ -657,6 +659,100 @@ function renderPagination(totalItems) {
 
 
   pagination.appendChild(paginationWrapper);
+}
+
+// Function to update dropdown menus based on search words
+function updateFilterBySearch(){
+
+const authorSelect = document.getElementById("filterAuthor");
+const yearSelect = document.getElementById("filterYear");
+const journalSelect = document.getElementById("filterJournal");
+const searchField = document.getElementById("search");
+ 
+searchField.addEventListener("input", () => {
+
+  // Get search input contents
+  const search = document.getElementById("search").value.toLowerCase().trim();
+
+  // Split the search query into individual words
+  const searchWords = search.split(/\s+/).filter((word) => word); // Remove empty strings
+
+  // Filter publications based on search and selected filters
+  let filteredPublications = publications.filter((pub) => {
+  // Multi-word prefix search across BibTeX entry
+
+  const matchesSearch =
+    !searchWords.length ||
+    searchWords.every(
+      (searchWord) =>
+        pub.bibtex
+
+          .toLowerCase()
+
+          .split(/\s+/) // Split BibTeX into words
+
+          .some((bibWord) => bibWord.startsWith(searchWord)) // Prefix match for each search word
+    );
+
+  return matchesSearch;
+  });
+
+  // Update the "filterAuthors" dropdown
+  const matchOrcid = [...new Set(filteredPublications.map((pub) => pub.orcid))].sort()
+  console.log(authors)
+  const filteredAuthors = Object.fromEntries(
+    Object.entries(authors).filter(([key, value]) => matchOrcid.includes(value))
+  );
+  const sortedAuthors = Object.entries(filteredAuthors).sort(([aName], [bName]) =>
+    aName.localeCompare(bName)
+  );
+  authorSelect.innerHTML = ""; // Clear existing options
+  const defaultauthorSelect = document.createElement("option");
+  defaultauthorSelect.value = "";
+  defaultauthorSelect.textContent = "All Authors";
+  authorSelect.appendChild(defaultauthorSelect);
+  sortedAuthors.forEach(([name, orcid]) => {
+    const option = document.createElement("option");
+    option.value = orcid;
+    option.textContent = name;
+    authorSelect.appendChild(option);
+  });
+
+  // Update the "filterYear" dropdown
+  const years = [...new Set(filteredPublications.map((pub) => pub.year))].sort().reverse();
+  yearSelect.innerHTML = ""; // Clear existing options
+  const defaultYearOption = document.createElement("option");
+  defaultYearOption.value = "";
+  defaultYearOption.textContent = "All Years";
+  yearSelect.appendChild(defaultYearOption);
+  years.forEach((year) => {
+    const option = document.createElement("option");
+    option.value = year;
+    option.textContent = year;
+    yearSelect.appendChild(option);
+  });
+
+    // Update the "filterJournal" dropdown
+    const journals = [...new Set(filteredPublications.map((pub) => pub.journal))]
+      .filter((j) => j)
+      .sort();
+    journalSelect.innerHTML = ""; // Clear existing options
+    const defaultJournalOption = document.createElement("option");
+    const max_string_length = 60;
+    defaultJournalOption.value = "";
+    defaultJournalOption.textContent = "All Venues";
+    journalSelect.appendChild(defaultJournalOption);
+    journals.forEach((journal) => {
+      const option = document.createElement("option");
+      option.value = journal;
+      if (journal.length>max_string_length){
+        option.textContent = journal.substring(0, max_string_length-3)+"...";
+      } else{
+        option.textContent = journal;
+      }
+      journalSelect.appendChild(option);
+    });
+  });
 }
 
 // Function to update dropdown menus based on selected author
