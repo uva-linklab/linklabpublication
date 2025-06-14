@@ -27,6 +27,12 @@ def load_authors():
         authors_json = json.load(f)    
     return authors_json
 
+# Function to load publication data from current Bibtex file
+def load_bibtex():
+    with open(BIB_DIR / 'Publications.bib', "r", encoding="utf-8") as bibtex_file:
+        bib_database = bibtexparser.load(bibtex_file)   
+    return bib_database
+
 # Function to get bibtex  
 def get_bibtex(pub, author_id):
 
@@ -39,7 +45,7 @@ def get_bibtex(pub, author_id):
                         "inproceedings", "manual", "mastersthesis",
                           "misc", "phdthesis",  "proceedings", 
                           "techreport", "unpublished"]
-    # print(f"Creating BibTeX for \"{pub['display_name']}\"...")
+    print(f" >> Creating BibTeX for \"{pub['display_name']}\"...")
 
     if url:
         # Check if the BIBTEX is available for the DOI 
@@ -50,8 +56,18 @@ def get_bibtex(pub, author_id):
             pattern = re.search(r'\@(.*?)\{',bib_entry)
             if pattern:
                 if pattern.group(1) in all_bibtex_types:
-                    print(f"BibTeX downloaded for current publication (url:{url}, type: {pattern.group(1)}).")
-                    return bib_entry.replace("{", f"{{{author_id}:", 1)  # Format the id field to include the author_id
+                    print(f" >> BibTeX downloaded for current publication (url:{url}, type: {pattern.group(1)}).")
+                    bib_entry = bib_entry.replace("{", f"{{{author_id}:", 1)  # Format the id field to include the author_id
+                    bib = bibtexparser.loads(bib_entry)
+                    if len(bib.entries) != 0:
+                        bib_item = bib.entries[0]
+                        print(bib_item.get('url', ' >> URL not found in BibTeX entry'))
+                        bib_item['url'] = url
+                        return bibtexparser.dumps(bib_item)
+                    else:
+                        print("BibTeX API can't proccess entry, creating custom BibTeX entry instead...")
+                        pass
+                    
             else:
                 print("Formating error of DOI API response, creating custom BibTeX entry instead...")
                 pass                                
@@ -78,7 +94,7 @@ def get_bibtex(pub, author_id):
                 print(f"Source unknown for current publication (type: {pub['type']}).")
         else:
             venue = ""
-            pub_url = ""
+            pub_url = pub["id"]
             print(f"Primary location unknown for current publication (type: {pub['type']}).")
 
 
@@ -97,6 +113,7 @@ def get_bibtex(pub, author_id):
             'doi': str(pub["doi"]),
             'author': " and ".join([author["author"]["display_name"] for author in pub["authorships"]]),
         }
+        print(publication_entry)
 
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [publication_entry]
@@ -144,6 +161,21 @@ def generate_bibtex_and_stats():
     # Load authors from the JSON file
     authors_json = load_authors()
 
+    # Load the current BibTeX file
+    bib_database = load_bibtex()
+
+    # Creates a list with all valid DOI urls in the BibTeX file
+    doi_list = [entry['doi'].lower() for entry in bib_database.entries if 'doi' in entry and entry['doi'] is not None and entry['doi'] != 'None']
+    for index, item in enumerate(doi_list):
+        if not item.startswith("http"):
+            doi_list[index] = 'https://doi.org/'+doi_list[index]
+        # print(f"DOI URL: {doi_list[index]}")
+    
+    # Creates a list with all valid publication urls in the BibTeX file   
+    url_list = [entry['url'] for entry in bib_database.entries if 'url' in entry  and entry['url'] is not None and entry['url'] != '']
+
+    title_list = [entry['title'].lower() for entry in bib_database.entries if 'title' in entry]
+
     print(" ")
 
     authors_ids = []
@@ -157,6 +189,7 @@ def generate_bibtex_and_stats():
     print(" ")  
 
     # Initialize variables
+    new_publications = 0
     valid_bibtex_publications = ""
     skipped_bibtex_publications = ""
     publication_stats = {'total_number_of_publications': 0,
@@ -178,6 +211,7 @@ def generate_bibtex_and_stats():
 
     for author, author_id in authors_json.items():
 
+        print(" ")
         print(f"=== Fetching publications for author: {author} (orcid:{author_id}) ===")
         print(" ")
 
@@ -193,9 +227,21 @@ def generate_bibtex_and_stats():
                     # skipped_bibtex_publications += get_bibtex(pub, author_id)
                 else:
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'],author, valid=True)
-                    valid_bibtex_publications += get_bibtex(pub, author_id)
-                print(" ") 
+                    
+                    # check if the publication DOI is already in the current BibTeX file and 
+                    pub_url = pub["primary_location"]["landing_page_url"] if pub["primary_location"] else ""
+                    pub_doi = pub['doi'].lower() if pub['doi'] is not None else ""
+                    if not pub_doi.startswith("http") and pub_doi != "":
+                        pub_doi = 'https://doi.org/'+pub_doi
+                    if pub_doi in doi_list or pub_doi in url_list or pub_url in url_list:
+                        print(f" (!) Publication with DOI '{pub['doi']}' and url '{pub_url}' already in the BibTeX file, skipping...") 
+                    else:
+                        valid_bibtex_publications += get_bibtex(pub, author_id)
+                        new_publications += 1
 
+
+    print(" ")
+    print(f"Total number of new publications: {new_publications}")
     return (valid_bibtex_publications,skipped_bibtex_publications,publication_stats)
 
 
@@ -210,7 +256,7 @@ if __name__ == "__main__":
     print(f"Publication statitics:\n{json.dumps(publication_stats, indent=4)}")
 
     # Save BibTeX file
-    with open(BIB_DIR / 'Publications.bib', 'w', encoding='utf-8') as bibtex_file:
+    with open(BIB_DIR / 'Publications.bib', 'a', encoding='utf-8') as bibtex_file:
         bibtex_file.write(valid_bibtex_publications)
 
     # Save skipped publications
