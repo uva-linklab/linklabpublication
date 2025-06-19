@@ -6,6 +6,10 @@ import re
 from pathlib import Path
 from calendar import month_name
 
+# Suppress warnings
+import warnings
+warnings.filterwarnings("ignore", module='bibtexparser')
+
 # Base directory for the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -48,6 +52,7 @@ def get_bibtex(pub, author_id):
     print(f" >> Creating BibTeX for \"{pub['display_name']}\"...")
 
     if url:
+        print(f" >> Downloading from url: \"{url}\"...")
         # Check if the BIBTEX is available for the DOI 
         try:
             response = requests.get(url, headers=headers)
@@ -60,23 +65,27 @@ def get_bibtex(pub, author_id):
                     bib_entry = bib_entry.replace("{", f"{{{author_id}:", 1)  # Format the id field to include the author_id
                     bib = bibtexparser.loads(bib_entry)
                     if len(bib.entries) != 0:
-                        bib_item = bib.entries[0]
-                        print(bib_item.get('url', ' >> URL not found in BibTeX entry'))
-                        bib_item['url'] = url
-                        return bibtexparser.dumps(bib_item)
+                        bib.entries[0]['url'] = url.replace("http:", "https:")  # Replace https with http in the URL
+                        bibtex_string = bibtexparser.dumps(bib)
+                        if bibtex_string or bibtex_string!="":
+                            print(f" >> BibTeX API successfully read downloaded entry (url:{url}).")
+                            return bibtex_string
+                        else:
+                            print(" >> BibTeX API returned an empty entry, creating custom BibTeX entry instead...")
+                            pass
                     else:
-                        print("BibTeX API can't proccess entry, creating custom BibTeX entry instead...")
+                        print(" >> BibTeX API can't proccess entry, creating custom BibTeX entry instead...")
                         pass
                     
             else:
-                print("Formating error of DOI API response, creating custom BibTeX entry instead...")
+                print(" >> Formating error of DOI API response, creating custom BibTeX entry instead...")
                 pass                                
         except requests.exceptions.RequestException as e:
-            print(f"Error fetching BibTeX from DOI url: {e}")
-            print("Creating custom BibTeX entry instead...")
+            print(f" >> Error fetching BibTeX from DOI url: {e}")
+            print(" >> Creating custom BibTeX entry instead...")
             pass
     else:
-        print(f"DOI URL is empty, creating custom BibTeX entry instead...")
+        print(f" >> DOI URL is empty, creating custom BibTeX entry instead...")
 
     try: 
         # Check if the publication has a primary location, a source and a display name
@@ -85,17 +94,17 @@ def get_bibtex(pub, author_id):
             if pub["primary_location"]["source"]:
                 if "display_name" in pub["primary_location"]["source"]:
                     venue = pub["primary_location"]["source"]["display_name"]
-                    print(f"Venue: {venue} (type: {pub['type']}).")
+                    print(f" >> Venue: {venue} (type: {pub['type']}).")
                 else:
                     venue = ""
-                    print(f"Venue unknown for current publication (type: {pub['type']}).")
+                    print(f" >> Venue unknown for current publication (type: {pub['type']}).")
             else:
                 venue = ""
-                print(f"Source unknown for current publication (type: {pub['type']}).")
+                print(f" >> Source unknown for current publication (type: {pub['type']}).")
         else:
             venue = ""
             pub_url = pub["id"]
-            print(f"Primary location unknown for current publication (type: {pub['type']}).")
+            print(f" >> Primary location unknown for current publication (type: {pub['type']}).")
 
 
         # Create a custom BibTeX entry
@@ -113,17 +122,16 @@ def get_bibtex(pub, author_id):
             'doi': str(pub["doi"]),
             'author': " and ".join([author["author"]["display_name"] for author in pub["authorships"]]),
         }
-        print(publication_entry)
 
         db = bibtexparser.bibdatabase.BibDatabase()
         db.entries = [publication_entry]
         return bibtexparser.dumps(db)
     except Exception as e: 
         # Handle any errors that occur during custom BibTeX entry creation
-        print(f"Error creating custom BibTeX entry: {e}")
-        print(f"Publication ID: {pub['id']}, Author ID: {author_id}, Display Name: {pub['display_name']}")
-        print(f"Publication: {pub['primary_location']}")
-        print(f"Publication: {pub}")
+        print(f" >> Error creating custom BibTeX entry: {e}")
+        print(f" >> Publication ID: {pub['id']}, Author ID: {author_id}, Display Name: {pub['display_name']}")
+        print(f" >> Publication: {pub['primary_location']}")
+        print(f" >> Publication: {pub}")
         print(" ")
         return ""
 
@@ -174,8 +182,6 @@ def generate_bibtex_and_stats():
     # Creates a list with all valid publication urls in the BibTeX file   
     url_list = [entry['url'] for entry in bib_database.entries if 'url' in entry  and entry['url'] is not None and entry['url'] != '']
 
-    title_list = [entry['title'].lower() for entry in bib_database.entries if 'title' in entry]
-
     print(" ")
 
     authors_ids = []
@@ -224,24 +230,29 @@ def generate_bibtex_and_stats():
             for pub in page:
                 if (pub["type"] not in VALID_PUBLICATION_TYPES) or ('ALL' in VALID_PUBLICATION_TYPES):
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'], author, valid=False)
-                    # skipped_bibtex_publications += get_bibtex(pub, author_id)
                 else:
                     publication_stats = update_publication_stats(publication_stats, pub['publication_year'], pub['type'],author, valid=True)
                     
                     # check if the publication DOI is already in the current BibTeX file and 
                     pub_url = pub["primary_location"]["landing_page_url"] if pub["primary_location"] else ""
+                    pub_openalexid = pub["id"]
+
                     pub_doi = pub['doi'].lower() if pub['doi'] is not None else ""
                     if not pub_doi.startswith("http") and pub_doi != "":
                         pub_doi = 'https://doi.org/'+pub_doi
-                    if pub_doi in doi_list or pub_doi in url_list or pub_url in url_list:
-                        print(f" (!) Publication with DOI '{pub['doi']}' and url '{pub_url}' already in the BibTeX file, skipping...") 
+                    if pub_doi in doi_list or pub_doi in url_list or pub_url in url_list or pub_openalexid in url_list:
+                        print(f" (!) Publication already exists! (DOI:'{pub['doi']}'/Open Alex ID:'{pub_openalexid}'/url:'{pub_url}')") 
                     else:
+                        print(f" >> New publication found! (DOI:'{pub['doi']}'/Open Alex ID:'{pub_openalexid}'/url:'{pub_url}')")
                         valid_bibtex_publications += get_bibtex(pub, author_id)
                         new_publications += 1
 
 
     print(" ")
+    print("=== Finished fetching publications ===")
+    print(" ")
     print(f"Total number of new publications: {new_publications}")
+    print(" ")
     return (valid_bibtex_publications,skipped_bibtex_publications,publication_stats)
 
 
@@ -260,8 +271,8 @@ if __name__ == "__main__":
         bibtex_file.write(valid_bibtex_publications)
 
     # Save skipped publications
-    with open(BIB_DIR / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
-        bibtex_file.write(skipped_bibtex_publications)
+    # with open(BIB_DIR / 'SkippedPublications.bib', 'w', encoding='utf-8') as bibtex_file:
+    #     bibtex_file.write(skipped_bibtex_publications)
 
     # Save statistics
     with open(LOGS_DIR / 'PublicationStatistics.json', 'w', encoding='utf-8') as stats_file:
