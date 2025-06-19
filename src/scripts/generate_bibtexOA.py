@@ -6,10 +6,6 @@ import re
 from pathlib import Path
 from calendar import month_name
 
-# Suppress warnings
-import warnings
-warnings.filterwarnings("ignore", module='bibtexparser')
-
 # Base directory for the project
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
