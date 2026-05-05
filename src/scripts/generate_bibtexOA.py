@@ -80,6 +80,10 @@ def get_bibtex(pub, author_id):
             print(f" >> Error fetching BibTeX from DOI url: {e}")
             print(" >> Creating custom BibTeX entry instead...")
             pass
+        except Exception as e:
+            print(f" >> Unexpected error processing BibTeX from DOI url: {e}")
+            print(" >> Creating custom BibTeX entry instead...")
+            pass
     else:
         print(f" >> DOI URL is empty, creating custom BibTeX entry instead...")
 
