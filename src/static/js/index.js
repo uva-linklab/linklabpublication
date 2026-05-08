@@ -203,10 +203,10 @@ function parseBibTeX(bibText) {
         return;
       }
 
-      // Skip entries with non latin characters
-      if (/[^\u0000-\u007F]/.test(entry)) {
+      // Skip entries with ideographic characters
+      if (/\p{Ideographic}/.test(entry)) {
         console.log(
-          `Skipping entry with ID ${id} due to special non latin characters.`
+          `Skipping entry with ID ${id} due to the use of ideographic characters.`
         );
         return;
       }
