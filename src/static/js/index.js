@@ -204,7 +204,7 @@ function parseBibTeX(bibText) {
       }
 
       // Skip entries with ideographic characters
-      if (/\p{Ideographic}/.test(entry)) {
+      if (/\p{Ideographic}/u.test(entry)) {
         console.log(
           `Skipping entry with ID ${id} due to the use of ideographic characters.`
         );
